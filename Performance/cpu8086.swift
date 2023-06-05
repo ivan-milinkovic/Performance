@@ -1,5 +1,11 @@
 import Foundation
 
+/*
+ nasm listing90.asm
+ (will generate listing39g)
+ cmp listing39 listing39g
+ */
+
 //private let inputFile = "listing37"
 //private let inputFile = "listing38"
 private let inputFile = "listing39"
@@ -13,7 +19,7 @@ func testcpu() {
     cmds.forEach { print($0) }
     
     let asm = makeSource(cmds: cmds)
-    print(asm)
+    print("\nAsm:"); print(asm)
     
 //    writeFile(asm)
 }
@@ -196,7 +202,7 @@ private func makeSource(cmds: [Command]) -> String {
         str.append(" ")
 
         switch c {
-        case .moveRegMem(let d, let w, let mod, let reg, let rm, let d0, let d1):
+        case .moveRegMem(let d, _, _, let reg, let rm, let d0, let d1):
             let regStr = asmString(reg)
             var rmStr : String
             switch rm {
@@ -205,17 +211,30 @@ private func makeSource(cmds: [Command]) -> String {
             case .eac(_, let regs, let disp):
                 rmStr = "["
                 rmStr += regs.map(asmString(_:)).joined(separator: " + ")
+                
                 if disp > 0 {
                     let offset : UInt16 = (UInt16(d1) << 8) | UInt16(d0)
-                    rmStr += " + \(offset)"
+                    if offset != 0 {
+                        rmStr += " + \(offset)"
+                    }
                 }
                 rmStr += "]"
             }
             
-            str.append(regStr + ", ")
-            str.append(rmStr)
+            let first = d ? regStr : rmStr
+            let second = !d ? regStr : rmStr
+            
+            str.append(first + ", " + second)
             
         case .moveImmediate(let w, let reg, let d0, let d1):
+            let regStr = asmString(reg)
+            var offset = UInt16(d0)
+            if w {
+                offset |= (UInt16(d1) << 8)
+            }
+            let offsetStr = "\(offset)"
+            
+            str.append(regStr + ", " + offsetStr)
             break
         }
         
