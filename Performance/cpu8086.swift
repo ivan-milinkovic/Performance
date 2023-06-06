@@ -25,16 +25,11 @@ func testcpu() {
 //    writeFile(asm)
 }
 
-private func loadFile() -> Data {
-    let inputFileUrl = dataDirUrl.appending(path: inputFile, directoryHint: URL.DirectoryHint.notDirectory)
-    let data = try! Data(contentsOf: inputFileUrl)
-    return data
-}
 
-private func writeFile(_ asm: String) {
-    let outputFileUrl = dataDirUrl.appending(path: inputFile + "g.asm", directoryHint: URL.DirectoryHint.notDirectory)
-    try! asm.write(to: outputFileUrl, atomically: false, encoding: .ascii)
-}
+
+//
+// parsing
+//
 
 private func parse(data: Data) -> [Command] {
     var cmds = [Command]()
@@ -75,17 +70,7 @@ private func parse(data: Data) -> [Command] {
     return cmds
 }
 
-struct DataIterator: IteratorProtocol {
-    private var iter: Data.Iterator
-    private(set) var i = 0
-    init(iter: Data.Iterator) {
-        self.iter = iter
-    }
-    mutating func next() -> UInt8? {
-        i += 1
-        return iter.next()
-    }
-}
+
 
 private func parseStandard2ndByte(iter i: inout DataIterator, W: Bool) -> (mod: Mod, reg: Reg, rm: RM, d0: UInt8, d1: UInt8) {
     guard let b2 = i.next() else { fatalError("unexpected binary") }
@@ -146,23 +131,30 @@ private func readDataFields(wide: Bool, dataIterator i: inout DataIterator) -> (
     return (dataLow, dataHigh)
 }
 
+
+
+
+
+//
+// Model
+//
+
+
 enum Command {
     case moveRegMem(RegMemParams)
     case moveImmediate(w: Bool, reg: Reg, d0: UInt8, d1: UInt8)
     case addRegMem(RegMemParams)
 }
 
-struct RegMemParams {
-    init(_ d: Bool, _ w: Bool, _ mod: Mod, _ reg: Reg, _ rm: RM, _ dsp0: UInt8, _ dsp1: UInt8) {
-        self.d = d
-        self.w = w
-        self.mod = mod
-        self.reg = reg
-        self.rm = rm
-        self.d0 = dsp0
-        self.d1 = dsp1
-    }
+enum Opcode: UInt8 {
+    case movRegMem = 0b100010
+    case movImmediateToReg = 0b1011
     
+    case addRegMem = 0b000000
+//    case addImmediateToReg = 0b100000
+}
+
+struct RegMemParams {
     let d: Bool
     let w: Bool
     let mod: Mod
@@ -172,53 +164,24 @@ struct RegMemParams {
     let d1: UInt8
 }
 
-extension RegMemParams: CustomStringConvertible {
-    var description: String {
-        return "d: \(d) \t w: \(w) \t mod: \(mod) \t reg: \(reg) \t rm: \(rm) \t d0: \(d0.binStr) \t d1: \(d1.binStr)"
-    }
+enum Mod: UInt8 {
+    case mem_0 = 0
+    case mem_8
+    case mem_16
+    case reg_0
 }
 
-extension Command: CustomStringConvertible {
-    var opcode: Opcode {
-        switch self {
-        case .moveRegMem: return .movRegMem
-        case .moveImmediate: return .movImmediateToReg
-        case .addRegMem: return .addRegMem
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .moveRegMem(let params):
-            return params.description
-            
-        case .moveImmediate(let w, let reg, let d0, let d1):
-            return "w: \(w) \t reg: \(reg) \t d0: \(d0.binStr) \t d1: \(d1.binStr)"
-            
-        case .addRegMem(let params):
-            return params.description
-        }
-    }
+enum Reg {
+    case AL, AH, AX
+    case BL, BH, BX
+    case CL, CH, CX
+    case DL, DH, DX
+    case SP, BP, SI, DI
 }
 
 enum RM {
     case reg(bits: UInt8, reg: Reg)
     case eac(bits: UInt8, regs: [Reg], disp: UInt8)
-}
-
-extension RM: CustomStringConvertible {
-    var description: String {
-        switch self {
-        case .reg(let bits, let reg):
-            return "{ \( binstr(bits, padding: 3) ), \(reg) }"
-        case .eac(let bits, let regs, let disp):
-            let regsStr = regs.map { "\($0)" }
-            var padding = ""
-            if regs.count == 1 { padding = "\t\t" }
-            else if regs.count == 0 { padding = "\t\t\t" }
-            return "{ \( binstr(bits, padding: 3) ), \(regsStr)\(padding) + \(disp * 8) }"
-        }
-    }
 }
 
 let rmEacMap : [[Reg]] = [
@@ -232,28 +195,13 @@ let rmEacMap : [[Reg]] = [
     [.BX]
 ]
 
-enum Reg {
-    case AL, AH, AX
-    case BL, BH, BX
-    case CL, CH, CX
-    case DL, DH, DX
-    case SP, BP, SI, DI
-}
 
-enum Opcode: UInt8 {
-    case movRegMem = 0b100010
-    case movImmediateToReg = 0b1011
-    
-    case addRegMem = 0b000000
-//    case addImmediateToReg = 0b100000
-}
 
-enum Mod: UInt8 {
-    case mem_0 = 0
-    case mem_8
-    case mem_16
-    case reg_0
-}
+
+//
+// Making Source ASM
+//
+
 
 private func makeSource(cmds: [Command]) -> String {
     var str = "bits 16\n\n"
@@ -322,4 +270,101 @@ private func asmString(_ c: Opcode) -> String {
 
 private func asmString(_ r: Reg) -> String {
     "\(r)"
+}
+
+
+
+
+//
+// Util
+//
+
+private func loadFile() -> Data {
+    let inputFileUrl = dataDirUrl.appending(path: inputFile, directoryHint: URL.DirectoryHint.notDirectory)
+    let data = try! Data(contentsOf: inputFileUrl)
+    return data
+}
+
+private func writeFile(_ asm: String) {
+    let outputFileUrl = dataDirUrl.appending(path: inputFile + "g.asm", directoryHint: URL.DirectoryHint.notDirectory)
+    try! asm.write(to: outputFileUrl, atomically: false, encoding: .ascii)
+}
+
+extension Command {
+    var opcode: Opcode {
+        switch self {
+        case .moveRegMem: return .movRegMem
+        case .moveImmediate: return .movImmediateToReg
+        case .addRegMem: return .addRegMem
+        }
+    }
+}
+
+struct DataIterator: IteratorProtocol {
+    private var iter: Data.Iterator
+    private(set) var i = 0
+    init(iter: Data.Iterator) {
+        self.iter = iter
+    }
+    mutating func next() -> UInt8? {
+        i += 1
+        return iter.next()
+    }
+}
+
+extension RegMemParams {
+    init(_ d: Bool, _ w: Bool, _ mod: Mod, _ reg: Reg, _ rm: RM, _ dsp0: UInt8, _ dsp1: UInt8) {
+        self.d = d
+        self.w = w
+        self.mod = mod
+        self.reg = reg
+        self.rm = rm
+        self.d0 = dsp0
+        self.d1 = dsp1
+    }
+}
+
+
+
+
+
+//
+// Printing
+//
+
+extension Command: CustomStringConvertible {
+
+    var description: String {
+        switch self {
+        case .moveRegMem(let params):
+            return params.description
+            
+        case .moveImmediate(let w, let reg, let d0, let d1):
+            return "w: \(w) \t reg: \(reg) \t d0: \(d0.binStr) \t d1: \(d1.binStr)"
+            
+        case .addRegMem(let params):
+            return params.description
+        }
+    }
+}
+
+extension RegMemParams: CustomStringConvertible {
+    var description: String {
+        return "d: \(d) \t w: \(w) \t mod: \(mod) \t reg: \(reg) \t rm: \(rm) \t d0: \(d0.binStr) \t d1: \(d1.binStr)"
+    }
+}
+
+extension RM: CustomStringConvertible {
+    var description: String {
+        switch self {
+        case .reg(let bits, let reg):
+            return "{ \( binstr(bits, padding: 3) ), \(reg) }"
+        case .eac(let bits, let regs, let disp):
+            let regsStr = regs.map { "\($0)" }
+            var padding = ""
+            if regs.count == 1 { padding = "\t\t" }
+            else if regs.count == 0 { padding = "\t\t\t" }
+            return "{ \( binstr(bits, padding: 3) ), \(regsStr)\(padding) + \(disp * 8) }"
+        }
+    }
 }
