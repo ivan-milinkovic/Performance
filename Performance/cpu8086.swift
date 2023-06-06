@@ -6,10 +6,11 @@ import Foundation
  cmp listing39 listing39g
  */
 
-//private let inputFile = "listing37"
-//private let inputFile = "listing38"
-private let inputFile = "listing39"
-//private let inputFile = "listing40"
+private let inputFile =
+//                        "listing37"
+//                        "listing38"
+//                        "listing39"
+                        "listing41"
 
 func testcpu() {
     let data = loadFile()
@@ -37,13 +38,13 @@ private func writeFile(_ asm: String) {
 
 private func parse(data: Data) -> [Command] {
     var cmds = [Command]()
-    var i = data.makeIterator()
+    var i = DataIterator(iter: data.makeIterator())
     while true {
         guard let b = i.next() else { break }
         
         // check the short mov
         var opcode = (b & 0b1111_0000) >> 4
-        if opcode == Opcode.movImmediate.rawValue {
+        if opcode == Opcode.movImmediateToReg.rawValue {
             let W = ((b & 0b0000_1000) >> 3) != 0
             let reg = b & 0b0000_0111
             let register = resolveReg(W: W, reg: reg)
@@ -56,27 +57,52 @@ private func parse(data: Data) -> [Command] {
         if opcode == Opcode.movRegMem.rawValue {
             let D = ((b & 0b0000_0010) >> 1) != 0
             let W = (b & 0b0000_0001) != 0
-            
-            guard let b2 = i.next() else { fatalError("unexpected binary") }
-            let mod = (b2 & 0b1100_0000) >> 6
-            let reg = (b2 & 0b0011_1000) >> 3
-            let rm = (b2 & 0b0000_0111)
-            
-            let modEnum = Mod(rawValue: mod)!
-            let regEnum = resolveReg(W: W, reg: reg)
-            let rmEnum = resolveRM(mod: modEnum, W: W, rm: rm)
-            
-            var dispLow : UInt8 = 0
-            var dispHigh : UInt8 = 0
-            if modEnum == .mem_8 || modEnum == .mem_16 {
-                (dispLow, dispHigh) = readDataFields(wide: (modEnum == .mem_16), dataIterator: &i)
-            }
-            cmds.append(.moveRegMem(d: D, w: W, mod: modEnum, reg: regEnum, rm: rmEnum, d0: dispLow, d1: dispHigh))
+            let (modEnum, regEnum, rmEnum, d0, d1) = parseStandard2ndByte(iter: &i, W: W)
+            cmds.append(.moveRegMem(RegMemParams(D, W, modEnum, regEnum, rmEnum, d0, d1)))
             continue
         }
         
+        if opcode == Opcode.addRegMem.rawValue {
+            let D = ((b & 0b0000_0010) >> 1) != 0
+            let W = (b & 0b0000_0001) != 0
+            let (modEnum, regEnum, rmEnum, d0, d1) = parseStandard2ndByte(iter: &i, W: W)
+            cmds.append(.addRegMem(RegMemParams(D, W, modEnum, regEnum, rmEnum, d0, d1)))
+            continue
+        }
+        
+        print("Unhandled opcode:", opcode.binStr)
     }
     return cmds
+}
+
+struct DataIterator: IteratorProtocol {
+    private var iter: Data.Iterator
+    private(set) var i = 0
+    init(iter: Data.Iterator) {
+        self.iter = iter
+    }
+    mutating func next() -> UInt8? {
+        i += 1
+        return iter.next()
+    }
+}
+
+private func parseStandard2ndByte(iter i: inout DataIterator, W: Bool) -> (mod: Mod, reg: Reg, rm: RM, d0: UInt8, d1: UInt8) {
+    guard let b2 = i.next() else { fatalError("unexpected binary") }
+    let mod = (b2 & 0b1100_0000) >> 6
+    let reg = (b2 & 0b0011_1000) >> 3
+    let rm = (b2 & 0b0000_0111)
+    
+    let modEnum = Mod(rawValue: mod)!
+    let regEnum = resolveReg(W: W, reg: reg)
+    let rmEnum = resolveRM(mod: modEnum, W: W, rm: rm)
+    
+    var d0 : UInt8 = 0
+    var d1 : UInt8 = 0
+    if modEnum == .mem_8 || modEnum == .mem_16 {
+        (d0, d1) = readDataFields(wide: (modEnum == .mem_16), dataIterator: &i)
+    }
+    return (modEnum, regEnum, rmEnum, d0, d1)
 }
 
 private func resolveReg(W: Bool, reg: UInt8) -> Reg {
@@ -110,7 +136,7 @@ private func resolveRM(mod: Mod, W: Bool, rm: UInt8) -> RM {
     return RM.eac(bits: rm, regs: regs, disp: mod.rawValue)
 }
 
-private func readDataFields(wide: Bool, dataIterator i: inout Data.Iterator) -> (dataLow: UInt8, dataHigh: UInt8) {
+private func readDataFields(wide: Bool, dataIterator i: inout DataIterator) -> (dataLow: UInt8, dataHigh: UInt8) {
     guard let dataLow = i.next() else { fatalError("unexpected eof") }
     var dataHigh : UInt8 = 0
     if wide {
@@ -121,25 +147,56 @@ private func readDataFields(wide: Bool, dataIterator i: inout Data.Iterator) -> 
 }
 
 enum Command {
-    case moveRegMem(d: Bool, w: Bool, mod: Mod, reg: Reg, rm: RM, d0: UInt8, d1: UInt8)
+    case moveRegMem(RegMemParams)
     case moveImmediate(w: Bool, reg: Reg, d0: UInt8, d1: UInt8)
+    case addRegMem(RegMemParams)
+}
+
+struct RegMemParams {
+    init(_ d: Bool, _ w: Bool, _ mod: Mod, _ reg: Reg, _ rm: RM, _ dsp0: UInt8, _ dsp1: UInt8) {
+        self.d = d
+        self.w = w
+        self.mod = mod
+        self.reg = reg
+        self.rm = rm
+        self.d0 = dsp0
+        self.d1 = dsp1
+    }
+    
+    let d: Bool
+    let w: Bool
+    let mod: Mod
+    let reg: Reg
+    let rm: RM
+    let d0: UInt8
+    let d1: UInt8
+}
+
+extension RegMemParams: CustomStringConvertible {
+    var description: String {
+        return "d: \(d) \t w: \(w) \t mod: \(mod) \t reg: \(reg) \t rm: \(rm) \t d0: \(d0.binStr) \t d1: \(d1.binStr)"
+    }
 }
 
 extension Command: CustomStringConvertible {
     var opcode: Opcode {
         switch self {
         case .moveRegMem: return .movRegMem
-        case .moveImmediate: return .movImmediate
+        case .moveImmediate: return .movImmediateToReg
+        case .addRegMem: return .addRegMem
         }
     }
     
     var description: String {
         switch self {
-        case .moveRegMem(let d, let w, let mod, let reg, let rm, let d0, let d1):
-            return "d: \(d) \t w: \(w), \t mod: \(mod), \t reg: \(reg), \t rm: \(rm), \t d0: \(d0.binStr), \t d1: \(d1.binStr)"
+        case .moveRegMem(let params):
+            return params.description
             
         case .moveImmediate(let w, let reg, let d0, let d1):
             return "w: \(w) \t reg: \(reg) \t d0: \(d0.binStr) \t d1: \(d1.binStr)"
+            
+        case .addRegMem(let params):
+            return params.description
         }
     }
 }
@@ -185,7 +242,10 @@ enum Reg {
 
 enum Opcode: UInt8 {
     case movRegMem = 0b100010
-    case movImmediate = 0b1011
+    case movImmediateToReg = 0b1011
+    
+    case addRegMem = 0b000000
+//    case addImmediateToReg = 0b100000
 }
 
 enum Mod: UInt8 {
@@ -202,29 +262,9 @@ private func makeSource(cmds: [Command]) -> String {
         str.append(" ")
 
         switch c {
-        case .moveRegMem(let d, _, _, let reg, let rm, let d0, let d1):
-            let regStr = asmString(reg)
-            var rmStr : String
-            switch rm {
-            case .reg(_, let reg):
-                rmStr = asmString(reg)
-            case .eac(_, let regs, let disp):
-                rmStr = "["
-                rmStr += regs.map(asmString(_:)).joined(separator: " + ")
-                
-                if disp > 0 {
-                    let offset : UInt16 = (UInt16(d1) << 8) | UInt16(d0)
-                    if offset != 0 {
-                        rmStr += " + \(offset)"
-                    }
-                }
-                rmStr += "]"
-            }
-            
-            let first = d ? regStr : rmStr
-            let second = !d ? regStr : rmStr
-            
-            str.append(first + ", " + second)
+        case .moveRegMem(let params):
+            let pstr = asmString(params)
+            str.append(pstr)
             
         case .moveImmediate(let w, let reg, let d0, let d1):
             let regStr = asmString(reg)
@@ -235,64 +275,51 @@ private func makeSource(cmds: [Command]) -> String {
             let offsetStr = "\(offset)"
             
             str.append(regStr + ", " + offsetStr)
-            break
+            
+        case .addRegMem(let params):
+            let pstr = asmString(params)
+            str.append(pstr)
         }
         
-        if c.opcode == .movRegMem {
-            
-            
-        }
         str.append("\n")
     }
     return str
 }
 
+private func asmString(_ p: RegMemParams) -> String {
+    var str = ""
+    let regStr = asmString(p.reg)
+    var rmStr : String
+    switch p.rm {
+    case .reg(_, let reg):
+        rmStr = asmString(reg)
+    case .eac(_, let regs, let disp):
+        rmStr = "["
+        rmStr += regs.map(asmString(_:)).joined(separator: " + ")
+        
+        if disp > 0 {
+            let offset : UInt16 = (UInt16(p.d1) << 8) | UInt16(p.d0)
+            if offset != 0 {
+                rmStr += " + \(offset)"
+            }
+        }
+        rmStr += "]"
+    }
+    
+    let first = p.d ? regStr : rmStr
+    let second = !p.d ? regStr : rmStr
+    
+    str.append(first + ", " + second)
+    return str
+}
+
 private func asmString(_ c: Opcode) -> String {
     switch c {
-    case .movRegMem, .movImmediate: return "mov"
+    case .movRegMem, .movImmediateToReg: return "MOV"
+    case .addRegMem: return "ADD"
     }
 }
 
 private func asmString(_ r: Reg) -> String {
     "\(r)"
 }
-
-/*
- let dst : UInt8 = (c.D == 0) ? c.RM : c.REG
- let src : UInt8 = (c.D == 0) ? c.REG : c.RM
- 
- let dstStr = (c.W == 0) ? asmString(RegisterHalf(rawValue: dst)!)
- : asmString(RegisterFull(rawValue: dst)!)
- 
- let srcStr = (c.W == 0) ? asmString(RegisterHalf(rawValue: src)!)
- : asmString(RegisterFull(rawValue: src)!)
- 
- let first = (c.D == 0) ? srcStr : dstStr
- let second = (c.D == 0) ? dstStr : srcStr
- */
-
-//private func asmString(_ r: RegisterHalf) -> String {
-//    switch r {
-//    case .AL: return "AL"
-//    case .CL: return "CL"
-//    case .DL: return "DL"
-//    case .BL: return "BL"
-//    case .AH: return "AH"
-//    case .CH: return "CH"
-//    case .DH: return "DH"
-//    case .BH: return "BH"
-//    }
-//}
-//
-//private func asmString(_ r: RegisterFull) -> String {
-//    switch r {
-//    case .AX: return "AX"
-//    case .CX: return "CX"
-//    case .DX: return "DX"
-//    case .BX: return "BX"
-//    case .SP: return "SP"
-//    case .BP: return "BP"
-//    case .SI: return "SI"
-//    case .DI: return "DI"
-//    }
-//}
