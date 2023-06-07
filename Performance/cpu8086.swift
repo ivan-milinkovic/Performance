@@ -9,8 +9,9 @@ import Foundation
 private let inputFile =
 //                        "listing37"
 //                        "listing38"
-                        "listing39"
-//                        "listing41"
+//                        "listing39"
+                        "listing41"
+//                        "test"
 
 func testcpu() {
     let data = loadFile()
@@ -26,6 +27,12 @@ func testcpu() {
 }
 
 
+func dissasemble(_ data: Data) -> String {
+    let cmds = parse(data: data)
+    let asm = makeSource(cmds: cmds)
+    return asm
+}
+
 
 //
 // parsing
@@ -37,18 +44,22 @@ private func parse(data: Data) -> [Command] {
     while true {
         guard let b = i.next() else { break }
         
-        // check the short mov
+        // check the short opcode
         var opcode = (b & 0b1111_0000) >> 4
-        if opcode == Opcode.movImmediateToReg.rawValue {
+        
+        if opcode == Opcode.movImmediateToRegMem.rawValue {
             let W = ((b & 0b0000_1000) >> 3) != 0
             let reg = b & 0b0000_0111
             let regEnum = resolveReg(W: W, reg: reg)
             let (data0, data1) = readDataFields(wide: W, dataIterator: &i)
-            cmds.append(Command(.movImmediateToReg, false, W, nil, regEnum, nil, nil, nil, data0, data1))
+            cmds.append(Command(.movImmediateToRegMem, false, W, nil, regEnum, nil, nil, nil, data0, data1))
             continue
         }
         
+        // checkregular opcodes
+        
         opcode = (b & 0b1111_1100) >> 2
+        
         if opcode == Opcode.movRegMem.rawValue {
             let D = ((b & 0b0000_0010) >> 1) != 0
             let W = (b & 0b0000_0001) != 0
@@ -65,12 +76,25 @@ private func parse(data: Data) -> [Command] {
             continue
         }
         
-        if opcode == Opcode.addImmediateToReg.rawValue {
+        if opcode == Opcode.addImmediateToRegMem.rawValue {
             let S = ((b & 0b0000_0010) >> 1) != 0
             let W = (b & 0b0000_0001) != 0
             let (modEnum, _, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &i, W: W, ignoreReg: true)
+            var (data0, data1) = readDataFields(wide: false, dataIterator: &i)
+            if S {
+                let data16 = Int16(data0)
+                data0 = UInt8(data16 & 0x00FF)
+                data1 = UInt8((data16 >> 8) & 0x00FF)
+            }
+            cmds.append(Command(.addImmediateToRegMem, S, W, modEnum, nil, rmEnum, disp0, disp1, data0, data1))
+            continue
+        }
+        
+        if opcode == Opcode.addImmediateToAcc.rawValue {
+            let S = false
+            let W = (b & 0b0000_0001) != 0
             let (data0, data1) = readDataFields(wide: W, dataIterator: &i)
-            cmds.append(Command(.addImmediateToReg, S, W, modEnum, nil, rmEnum, disp0, disp1, data0, data1))
+            cmds.append(Command(.addImmediateToRegMem, S, W, nil, nil, nil, nil, nil, data0, data1))
             continue
         }
         
@@ -93,8 +117,8 @@ private func parseStandard2ndByte(iter i: inout DataIterator, W: Bool, ignoreReg
     
     var disp0 : UInt8 = 0
     var disp1 : UInt8? = 0
-    if modEnum == .mem_8 || modEnum == .mem_16 {
-        let isWide = (modEnum == .mem_16) || ( rm == 0b110 )
+    if modEnum == .mem_8 || modEnum == .mem_16 || ( modEnum == .mem_0 && rm == 0b110 ) {
+        let isWide = (modEnum == .mem_16) || ( modEnum == .mem_0 && rm == 0b110 )
         (disp0, disp1) = readDataFields(wide: isWide, dataIterator: &i)
     }
     return (modEnum, regEnum, rmEnum, disp0, disp1)
@@ -152,10 +176,11 @@ private func readDataFields(wide: Bool, dataIterator i: inout DataIterator) -> (
 
 enum Opcode: UInt8 {
     case movRegMem = 0b100010
-    case movImmediateToReg = 0b1011
+    case movImmediateToRegMem = 0b1011
     
     case addRegMem = 0b000000
-    case addImmediateToReg = 0b100000
+    case addImmediateToRegMem = 0b100000
+    case addImmediateToAcc = 0b000001
 }
 
 struct Command {
@@ -242,7 +267,10 @@ private func makeSource(cmds: [Command]) -> String {
         }
         
         else {
-            fatalError("unhandled case")
+            let reg: Reg = c.w ? Reg.AX : Reg.AL
+            let regStr = asmString(reg)
+            let dataStr = asmData(data0: c.data0!, data1: c.data1)
+            str.append(regStr + ", " + dataStr)
         }
         
         str += "\n"
@@ -275,15 +303,15 @@ private func asmRm(rm: RM, disp0: UInt8?, disp1: UInt8?) -> String {
 private func asmData(data0: UInt8, data1: UInt8?) -> String {
     var data : UInt16 = UInt16(data0)
     if let data1 = data1 {
-        data = (data << 8) | UInt16(data1)
+        data = (UInt16(data1) << 8) | data
     }
     return "\(data)"
 }
 
 private func asmString(_ c: Opcode) -> String {
     switch c {
-    case .movRegMem, .movImmediateToReg: return "MOV"
-    case .addRegMem, .addImmediateToReg: return "ADD"
+    case .movRegMem, .movImmediateToRegMem: return "MOV"
+    case .addRegMem, .addImmediateToRegMem, .addImmediateToAcc: return "ADD"
     }
 }
 
