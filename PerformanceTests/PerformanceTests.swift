@@ -1,15 +1,6 @@
 import XCTest
 
 final class PerformanceTests: XCTestCase {
-
-//    func test8086() {
-//        for testCase in testData {
-//            let source = testCase.key
-//            let binary = testCase.value
-//            let dissasembled = dissasemble(binary)
-//            XCTAssertEqual(source, dissasembled.lowercased())
-//        }
-//    }
     
     func test8086() {
         
@@ -218,7 +209,7 @@ final class PerformanceTests: XCTestCase {
 //        var source : String
 //        var binary : Data
 //        var dissasembled : String
-//        
+//
 //        source = "bits 16\n\nadd si, 2\n"
 //        binary = data([0b10000011, 0b11000110, 0b00000010])
 //        dissasembled = dissasemble(binary)
@@ -229,42 +220,4 @@ final class PerformanceTests: XCTestCase {
         let data = Data(bytes)
         return data
     }
-    
-//    let testData : [String: Data] = [
-//
-//        // reg to reg:
-//        "bits 16\n\nmov si, bx\n" : data([0b10001001, 0b11011110]),
-//        "bits 16\n\nmov dh, al\n" : data([0b10001000, 0b11000110]),
-////
-//        // 8-bit (immediate) to reg:
-//        "bits 16\n\nmov cx, 12\n" : data([0b10111001, 0b00001100, 0b00000000]),
-//        "bits 16\n\nmov cx, 65524\n" : data([0b10111001, 0b11110100, 0b11111111]), // TODO: -12
-//
-//        // 16-bit (immediate) to register:
-//        "bits 16\n\nmov dx, 3948\n" : data([0b10111010, 0b01101100, 0b00001111]),
-//        "bits 16\n\nmov dx, 61588\n" : data([0b10111010, 0b10010100, 0b11110000]), // TODO: -3948
-//
-////        // Source address calculation:
-//        "bits 16\n\nmov al, [bx + si]\n" : data([0b10001010, 0b00000000]),
-//        "bits 16\n\nmov al, [bx + di]\n" : data([0b10001011, 0b00011011]),
-//        "bits 16\n\nmov al, [bp]\n" : data([0b10001011, 0b01010110, 0b00000000]),
-//
-//        // Source 8-bit address
-//        "bits 16\n\nmov ah, [bx + si + 4]\n" : data([0b10001010, 0b01100000, 0b00000100]),
-//
-//        // Source 16-bit address
-//        "bits 16\n\nmov al, [bx + si + 4999]\n" : data([0b10001010, 0b10000000, 0b10000111, 0b00010011]),
-//
-//        // Destination address
-//        "bits 16\n\nmov [bx + di], cx\n" : data([0b10001001, 0b00001001]),
-//
-//        "bits 16\n\nmov [bp + si], cl\n" : data([0b10001000, 0b00001010]),
-//        "bits 16\n\nmov [bp], ch\n" : data([0b10001000, 0b01101110, 0b00000000]),
-//
-//
-//        // Other commands
-//
-//        "bits 16\n\nadd bx, [bx+si]\n" : data([0b00000011, 0b00011000]),
-//        "bits 16\n\nadd bx, [bp]\n" : data([0b00000011, 0b01011110, 0b00000000])
-//    ]
 }
