@@ -1,4 +1,3 @@
 bits 16
 
-add al, ah
-
+cmp ax, 10

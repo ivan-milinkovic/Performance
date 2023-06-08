@@ -203,18 +203,45 @@ final class PerformanceTests: XCTestCase {
         binary = data([0b00000100, 0b11100010])
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
-    }
-    
-    func testIndividual() {
-        var source : String
-        var binary : Data
-        var dissasembled : String
-
-        source = "bits 16\n\nadd ax, 1000\n"
-        binary = data([0b00000101, 0b11101000, 0b00000011])
+        
+        source = "bits 16\n\nsub al, bh\n"
+        binary = data([0b00101000, 0b11111000])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
+        
+        source = "bits 16\n\nsub [bx + 2], cx\n"
+        binary = data([0b00101001, 0b01001111, 0b00000010])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
+        
+        source = "bits 16\n\nsub al, 10\n"
+        binary = data([0b00101100, 0b00001010])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
+        
+        source = "bits 16\n\ncmp al, bh\n"
+        binary = data([0b00111000, 0b11111000])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
+        
+        source = "bits 16\n\ncmp [bx + 2], cx\n"
+        binary = data([0b00111001, 0b01001111, 0b00000010])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
+        
+        source = "bits 16\n\ncmp ax, 10\n"
+        binary = data([0b10000011, 0b11111000, 0b00001010])
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
     }
+    
+//    func testIndividual() {
+//        var source : String
+//        var binary : Data
+//        var dissasembled : String
+//        
+//        
+//    }
     
     func data(_ bytes: [UInt8]) -> Data {
         let data = Data(bytes)
