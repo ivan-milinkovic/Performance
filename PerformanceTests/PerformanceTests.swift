@@ -205,16 +205,16 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(source, dissasembled.lowercased())
     }
     
-//    func testIndividual() {
-//        var source : String
-//        var binary : Data
-//        var dissasembled : String
-//
-//        source = "bits 16\n\nadd si, 2\n"
-//        binary = data([0b10000011, 0b11000110, 0b00000010])
-//        dissasembled = dissasemble(binary)
-//        XCTAssertEqual(source, dissasembled.lowercased())
-//    }
+    func testIndividual() {
+        var source : String
+        var binary : Data
+        var dissasembled : String
+
+        source = "bits 16\n\nadd ax, 1000\n"
+        binary = data([0b00000101, 0b11101000, 0b00000011])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
+    }
     
     func data(_ bytes: [UInt8]) -> Data {
         let data = Data(bytes)
