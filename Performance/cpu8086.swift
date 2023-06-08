@@ -1,26 +1,18 @@
 import Foundation
 
-/*
- nasm listing90.asm
- (will generate listing39g)
- cmp listing39 listing39g
- */
-
 private let inputFile =
-//                        "listing37"
-//                        "listing38"
-//                        "listing39"
-                        "listing41"
-//                        "test"
+//"listing37"
+//"listing38"
+//"listing39"
+"listing41"
+//"test"
+
 
 func testcpu() {
     let data = loadFile()
     print(data.binStr)
     
-    let cmds = parse(data: data)
-    cmds.forEach { print($0) }
-    
-    let asm = makeSource(cmds: cmds)
+    let asm = dissasemble(data)
     print("\nAsm:"); print(asm)
     
 //    writeFile(asm)
@@ -44,7 +36,8 @@ private func parse(data: Data) -> [Command] {
     while true {
         guard let b = i.next() else { break }
         
-        // check the short opcode
+        // Check short opcode
+        
         var opcode = (b & 0b1111_0000) >> 4
         
         if opcode == ShortOpcode.movImmediateToRegMem.rawValue {
@@ -65,177 +58,47 @@ private func parse(data: Data) -> [Command] {
             continue
         }
         
-        // check regular opcodes
+        // Check simple opcode
         
         opcode = (b & 0b1111_1100) >> 2
         
-        // MOV
-        
-        if opcode == SimpleOpcode.movRegMem.rawValue {
-            let D = ((b & 0b0000_0010) >> 1) != 0
-            let W = (b & 0b0000_0001) != 0
-            let (modEnum, reg, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &i, W: W)
-            let regEnum = resolveReg(W: W, reg: reg)
-            cmds.append(Command(opcode: .simple(.movRegMem),
-                                dsv: D,
-                                w: W,
-                                mod: modEnum,
-                                reg: regEnum,
-                                rm: rmEnum,
-                                disp0: disp0,
-                                disp1: disp1,
-                                data0: nil,
-                                data1: nil))
-            continue
+        if let simpleOpcode = SimpleOpcode(rawValue: opcode) {
+            if simpleOpcode.isRegMem {
+                let D = ((b & 0b0000_0010) >> 1) != 0
+                let W = (b & 0b0000_0001) != 0
+                let (modEnum, reg, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &i, W: W)
+                let regEnum = resolveReg(W: W, reg: reg)
+                cmds.append(Command(opcode: .simple(simpleOpcode),
+                                    dsv: D,
+                                    w: W,
+                                    mod: modEnum,
+                                    reg: regEnum,
+                                    rm: rmEnum,
+                                    disp0: disp0,
+                                    disp1: disp1,
+                                    data0: nil,
+                                    data1: nil))
+                continue
+            }
+            else if simpleOpcode.isImmediateToAcc {
+                let S = false
+                let W = (b & 0b0000_0001) != 0
+                let (data0, data1) = readDataFields(wide: W, dataIterator: &i)
+                cmds.append(Command(opcode: .simple(simpleOpcode),
+                                    dsv: S,
+                                    w: W,
+                                    mod: nil,
+                                    reg: nil,
+                                    rm: nil,
+                                    disp0: nil,
+                                    disp1: nil,
+                                    data0: data0,
+                                    data1: data1))
+                continue
+            }
         }
         
-        // ADD
-        
-        if opcode == SimpleOpcode.addRegMem.rawValue {
-            let D = ((b & 0b0000_0010) >> 1) != 0
-            let W = (b & 0b0000_0001) != 0
-            let (modEnum, reg, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &i, W: W)
-            let regEnum = resolveReg(W: W, reg: reg)
-            cmds.append(Command(opcode: .simple(.addRegMem),
-                                dsv: D,
-                                w: W,
-                                mod: modEnum,
-                                reg: regEnum,
-                                rm: rmEnum,
-                                disp0: disp0,
-                                disp1: disp1,
-                                data0: nil,
-                                data1: nil))
-            continue
-        }
-        
-        if opcode == SimpleOpcode.addImmediateToAcc.rawValue {
-            let S = false
-            let W = (b & 0b0000_0001) != 0
-            let (data0, data1) = readDataFields(wide: W, dataIterator: &i)
-            cmds.append(Command(opcode: .simple(.addImmediateToAcc),
-                                dsv: S,
-                                w: W,
-                                mod: nil,
-                                reg: nil,
-                                rm: nil,
-                                disp0: nil,
-                                disp1: nil,
-                                data0: data0,
-                                data1: data1))
-            continue
-        }
-        
-        // SUB
-        
-        if opcode == SimpleOpcode.subRegMem.rawValue {
-            let D = ((b & 0b0000_0010) >> 1) != 0
-            let W = (b & 0b0000_0001) != 0
-            let (modEnum, reg, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &i, W: W)
-            let regEnum = resolveReg(W: W, reg: reg)
-            cmds.append(Command(opcode: .simple(.subRegMem),
-                                dsv: D,
-                                w: W,
-                                mod: modEnum,
-                                reg: regEnum,
-                                rm: rmEnum,
-                                disp0: disp0,
-                                disp1: disp1,
-                                data0: nil,
-                                data1: nil))
-            continue
-        }
-        
-        if opcode == SimpleOpcode.subImmediateToAcc.rawValue {
-            let S = false
-            let W = (b & 0b0000_0001) != 0
-            let (data0, data1) = readDataFields(wide: W, dataIterator: &i)
-            cmds.append(Command(opcode: .simple(.subImmediateToAcc),
-                                dsv: S,
-                                w: W,
-                                mod: nil,
-                                reg: nil,
-                                rm: nil,
-                                disp0: nil,
-                                disp1: nil,
-                                data0: data0,
-                                data1: data1))
-            continue
-        }
-        
-        // SUB
-        
-        if opcode == SimpleOpcode.subRegMem.rawValue {
-            let D = ((b & 0b0000_0010) >> 1) != 0
-            let W = (b & 0b0000_0001) != 0
-            let (modEnum, reg, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &i, W: W)
-            let regEnum = resolveReg(W: W, reg: reg)
-            cmds.append(Command(opcode: .simple(.subRegMem),
-                                dsv: D,
-                                w: W,
-                                mod: modEnum,
-                                reg: regEnum,
-                                rm: rmEnum,
-                                disp0: disp0,
-                                disp1: disp1,
-                                data0: nil,
-                                data1: nil))
-            continue
-        }
-        
-        if opcode == SimpleOpcode.subImmediateToAcc.rawValue {
-            let S = false
-            let W = (b & 0b0000_0001) != 0
-            let (data0, data1) = readDataFields(wide: W, dataIterator: &i)
-            cmds.append(Command(opcode: .simple(.subImmediateToAcc),
-                                dsv: S,
-                                w: W,
-                                mod: nil,
-                                reg: nil,
-                                rm: nil,
-                                disp0: nil,
-                                disp1: nil,
-                                data0: data0,
-                                data1: data1))
-            continue
-        }
-        
-        // CMP
-        
-        if opcode == SimpleOpcode.cmpRegMem.rawValue {
-            let D = ((b & 0b0000_0010) >> 1) != 0
-            let W = (b & 0b0000_0001) != 0
-            let (modEnum, reg, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &i, W: W)
-            let regEnum = resolveReg(W: W, reg: reg)
-            cmds.append(Command(opcode: .simple(.cmpRegMem),
-                                dsv: D,
-                                w: W,
-                                mod: modEnum,
-                                reg: regEnum,
-                                rm: rmEnum,
-                                disp0: disp0,
-                                disp1: disp1,
-                                data0: nil,
-                                data1: nil))
-            continue
-        }
-        
-        if opcode == SimpleOpcode.cmpImmediateToAcc.rawValue {
-            let S = false
-            let W = (b & 0b0000_0001) != 0
-            let (data0, data1) = readDataFields(wide: W, dataIterator: &i)
-            cmds.append(Command(opcode: .simple(.cmpImmediateToAcc),
-                                dsv: S,
-                                w: W,
-                                mod: nil,
-                                reg: nil,
-                                rm: nil,
-                                disp0: nil,
-                                disp1: nil,
-                                data0: data0,
-                                data1: data1))
-            continue
-        }
+        // Check composite opcode
         
         // ADD/SUB/CMP - Immediate to reg/mem
         
@@ -266,7 +129,6 @@ private func parse(data: Data) -> [Command] {
         }
         
         fatalError("Unhandled byte: \(opcode.binStr)")
-//        print("Unhandled byte:", opcode.binStr)
     }
     return cmds
 }
@@ -341,10 +203,41 @@ private func readDataFields(wide: Bool, dataIterator i: inout DataIterator) -> (
 // Model
 //
 
+struct Command {
+    let opcode: Opcode
+    let dsv: Bool // D/S/V
+    let w: Bool
+    let mod: Mod?
+    let reg: Reg?
+    let rm: RM?
+    let disp0: UInt8?
+    let disp1: UInt8?
+    let data0: UInt8?
+    let data1: UInt8?
+}
+
 enum Opcode {
     case short(ShortOpcode)
     case simple(SimpleOpcode)
     case composite(CompositeOpcode)
+}
+
+enum ShortOpcode: UInt8 {
+    case movImmediateToRegMem = 0b1011
+}
+
+enum SimpleOpcode: UInt8 {
+    
+    case movRegMem = 0b100010
+    
+    case addRegMem = 0b000000
+    case addImmediateToAcc = 0b000001
+    
+    case subRegMem = 0b001010
+    case subImmediateToAcc = 0b001011
+    
+    case cmpRegMem = 0b001110
+    case cmpImmediateToAcc = 0b001111
 }
 
 enum CompositeOpcode {
@@ -360,36 +253,6 @@ enum CompositeOpcode {
         case sub = 0b101
         case cmp = 0b111
     }
-}
-
-enum ShortOpcode: UInt8 {
-    case movImmediateToRegMem = 0b1011
-}
-
-enum SimpleOpcode: UInt8 {
-    case movRegMem = 0b100010
-    
-    case addRegMem = 0b000000
-    case addImmediateToAcc = 0b000001
-    
-    case subRegMem = 0b001010
-    case subImmediateToAcc = 0b001011
-    
-    case cmpRegMem = 0b001110
-    case cmpImmediateToAcc = 0b001111
-}
-
-struct Command {
-    let opcode: Opcode
-    let dsv: Bool // D/S/V
-    let w: Bool
-    let mod: Mod?
-    let reg: Reg?
-    let rm: RM?
-    let disp0: UInt8?
-    let disp1: UInt8?
-    let data0: UInt8?
-    let data1: UInt8?
 }
 
 enum Mod: UInt8 {
@@ -565,27 +428,6 @@ struct DataIterator: IteratorProtocol {
 }
 
 extension Command {
-//    init(opcode: Opcode,
-//         dsv: Bool,
-//         w: Bool,
-//         mod: Mod?,
-//         reg: Reg?,
-//         rm: RM?,
-//         disp0: UInt8?,
-//         disp1: UInt8?,
-//         data0: UInt8?,
-//         data1: UInt8?) {
-//        self.opcode = opcode
-//        self.dsv = dsv
-//        self.w = w
-//        self.mod = mod
-//        self.reg = reg
-//        self.rm = rm
-//        self.disp0 = disp0
-//        self.disp1 = disp1
-//        self.data0 = data0
-//        self.data1 = data1
-//    }
     
     var isWideDisp: Bool {
         disp0 != nil && disp0 != nil
@@ -596,8 +438,26 @@ extension Command {
     }
 }
 
-
-
+extension SimpleOpcode {
+    
+    var isRegMem: Bool {
+        switch self {
+        case .movRegMem, .addRegMem, .subRegMem, .cmpRegMem:
+            return true
+        case .addImmediateToAcc, .subImmediateToAcc, .cmpImmediateToAcc:
+            return false
+        }
+    }
+    
+    var isImmediateToAcc: Bool {
+        switch self {
+        case .movRegMem, .addRegMem, .subRegMem, .cmpRegMem:
+            return false
+        case .addImmediateToAcc, .subImmediateToAcc, .cmpImmediateToAcc:
+            return true
+        }
+    }
+}
 
 
 //
