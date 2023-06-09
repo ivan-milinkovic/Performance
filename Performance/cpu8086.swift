@@ -4,16 +4,19 @@ private let inputFile =
 //"listing37"
 //"listing38"
 //"listing39"
-"listing41"
-//"test"
+//"listing41"
+"test"
 
 
 func testcpu() {
     let data = loadFile()
     print(data.binStr)
     
-    let asm = dissasemble(data)
-    print("\nAsm:"); print(asm)
+    let cmds = parse(data: data)
+    run(cmds)
+    
+//    let asm = dissasemble(data)
+//    print("\nAsm:"); print(asm)
     
 //    writeFile(asm)
 }
@@ -27,7 +30,252 @@ func dissasemble(_ data: Data) -> String {
 
 
 //
-// parsing
+// Running
+//
+
+struct Registers {
+    var A: UInt16 = 0
+    var B: UInt16 = 0
+    var C: UInt16 = 0
+    var D: UInt16 = 0
+    var SP: UInt16 = 0
+    var BP: UInt16 = 0
+    var SI: UInt16 = 0
+    var DI: UInt16 = 0
+}
+
+var registers = Registers()
+var ram = [UInt16].init(repeating: 0, count: 1024 * 1024 / 2) // UInt16 / 2 = 1 byte; 1024 * 1024 bytes = 1 MB
+
+
+func run(_ cmds: [Command]) {
+    for c in cmds {
+        
+        print(c)
+        
+        let args = makeCommandArgs(c)
+        let optype = operationType(forOpcode: c.opcode)
+        switch optype {
+        case .mov:
+            let srcVal = args.src!.read(registers)
+            args.dest!.write(value: srcVal, registers: &registers)
+            
+        case .add:
+            var value: UInt16 = 0
+            if let src = args.src {
+                value = src.read(registers)
+            } else {
+                value = args.data!
+            }
+            let dstVal = args.dest!.read(registers)
+            let result = UInt16(Int16(truncatingIfNeeded: dstVal) + Int16(truncatingIfNeeded: value))
+            args.dest!.write(value: result, registers: &registers)
+            
+        case .sub:
+            var value: UInt16 = 0
+            if let src = args.src {
+                value = src.read(registers)
+            } else {
+                value = args.data!
+            }
+            let dstVal = args.dest!.read(registers)
+            let result = UInt16(Int16(truncatingIfNeeded: dstVal) - Int16(truncatingIfNeeded: value))
+            args.dest!.write(value: result, registers: &registers)
+            
+        case .cmp:
+            var value: UInt16 = 0
+            if let src = args.src {
+                value = src.read(registers)
+            } else {
+                value = args.data!
+            }
+            let dstVal = args.dest!.read(registers)
+            let result = UInt16(Int16(truncatingIfNeeded: dstVal) + Int16(truncatingIfNeeded: value) != 0 ? 1 : 0)
+            args.dest!.write(value: result, registers: &registers)
+        }
+        
+        print(registers)
+    }
+}
+
+
+private func makeCommandArgs(_ c: Command) -> CommandArgs {
+    
+    var regLoc: Location? = nil
+    var rmLoc: Location? = nil
+    var data : UInt16? = nil
+    
+    if let reg = c.reg {
+        let regLocation = regLocation(forReg: reg)
+        let regAccess = regAccess(forReg: reg)
+        regLoc = Location.reg(regLoc: regLocation, regAccess: regAccess)
+    }
+    
+    if let rm = c.rm {
+        switch rm {
+        case let .reg(_, reg):
+            let regLoc = regLocation(forReg: reg)
+            let regAccess = regAccess(forReg: reg)
+            rmLoc = Location.reg(regLoc: regLoc, regAccess: regAccess)
+            
+        case let .eac(_, regs):
+            var ptr : UInt16 = 0
+            for reg in regs {
+                let regLoc = regLocation(forReg: reg)
+                let regVal = registers[keyPath: regLoc] // These registers are full access, like BP
+                ptr += regVal
+            }
+            var disp = UInt16(truncatingIfNeeded: c.disp0!)
+            if let disp1 = c.disp1 {
+                disp = (UInt16(truncatingIfNeeded: disp1) << 8) | disp
+            }
+            ptr += disp
+            rmLoc = Location.mem(index: Int(ptr), W: c.w)
+        }
+    }
+    
+    if let data0 = c.data0 {
+        if let data1 = c.data1 {
+            data = (UInt16(truncatingIfNeeded: data1) << 8) | UInt16(truncatingIfNeeded: data0)
+        } else {
+            data = c.s! ? UInt16(data0) : UInt16(truncatingIfNeeded: data0)
+        }
+    }
+    
+    var src : Location? = nil
+    var dst : Location? = nil
+    
+    if let D = c.d {
+        dst = D ? regLoc : rmLoc
+        src = !D ? regLoc : rmLoc
+    } else {
+        dst = regLoc
+    }
+    
+    return CommandArgs(src: src, dest: dst, data: data)
+}
+
+private func regLocation(forReg reg: Reg) -> WritableKeyPath<Registers, UInt16> {
+    switch reg {
+    case .AL, .AH, .AX: return ( \Registers.A )
+    case .BL, .BH, .BX: return ( \Registers.B )
+    case .CL, .CH, .CX: return ( \Registers.C )
+    case .DL, .DH, .DX: return ( \Registers.D )
+    case .SP: return ( \Registers.SP )
+    case .BP: return ( \Registers.BP )
+    case .SI: return ( \Registers.SI )
+    case .DI: return ( \Registers.DI )
+    }
+}
+
+private func regAccess(forReg reg: Reg) -> RegAccess {
+    switch reg {
+    case .AL, .BL, .CL, .DL: return RegAccess.low
+    case .AH, .BH, .CH, .DH: return RegAccess.high
+    case .AX, .BX, .CX, .DX, .SP, .BP, .SI, .DI: return RegAccess.full
+    }
+}
+
+enum OperationType {
+    case mov
+    case add
+    case sub
+    case cmp
+}
+
+struct CommandArgs {
+    let src: Location?
+    let dest: Location?
+    let data: UInt16?
+}
+
+enum Location {
+    case reg(regLoc: WritableKeyPath<Registers, UInt16>, regAccess: RegAccess)
+    case mem(index: Int, W: Bool)
+    
+    func read(_ registers: Registers) -> UInt16 {
+        switch self {
+        case .reg(let regLoc, let regAccess):
+            let regVal = registers[keyPath: regLoc]
+            return regAccess.read(regVal)
+            
+        case .mem(let index, let W):
+            var memValue = ram[index]
+            memValue = W ? memValue : (memValue & 0xFF00) // TODO: where to take 1 byte fom: msb or lsb? Assuming left hand side - msb
+            return memValue
+        }
+    }
+    
+    func write(value: UInt16, registers: inout Registers) {
+        switch self {
+        case let .reg(regLoc, regAccess):
+            let regValue = registers[keyPath: regLoc]
+            let newValue = regAccess.write(value: value, to: regValue)
+            registers[keyPath: regLoc] = newValue
+            
+        case let .mem(index, W):
+            var memValue = ram[index]
+            memValue = W ? value : ((memValue & 0x00FF) | (value & 0xFF00)) // TODO: where does 1 byte go: msb or lsb? Assuming left hand side - msb
+            ram[index] = memValue
+        }
+    }
+}
+
+enum RegAccess {
+    case full
+    case low
+    case high
+    
+    func read(_ value: UInt16) -> UInt16 {
+        switch self {
+        case .full: return value
+        case .low : return value & 0x00FF
+        case .high: return value & 0xFF00
+        }
+    }
+    
+    func write(value: UInt16, to target: UInt16) -> UInt16 {
+        switch self {
+        case .full: return value
+        case .low : return target & (0xFF00) | (value & 0x00FF)
+        case .high: return target & (0x00FF) | (value & 0xFF00)
+        }
+    }
+}
+
+
+private func operationType(forOpcode opcode: Opcode) -> OperationType {
+    switch opcode {
+    case .short(let shortOpcode):
+        
+        switch shortOpcode {
+        case .movImmediateToRegMem: return .add
+        }
+        
+    case .simple(let simpleOpcode):
+        switch simpleOpcode {
+        case .movRegMem: return .mov
+        case .addRegMem, .addImmediateToAcc: return .add
+        case .subRegMem, .subImmediateToAcc: return .sub
+        case .cmpRegMem, .cmpImmediateToAcc: return .cmp
+        }
+        
+    case .composite(let compositeOpcode):
+        switch compositeOpcode {
+        case .AddSubCmp(let part2):
+            switch part2 {
+            case .add: return .add
+            case .sub: return .sub
+            case .cmp: return .cmp
+            }
+        }
+    }
+}
+
+
+
+//
+// Parsing
 //
 
 private func parse(data: Data) -> [Command] {
@@ -46,7 +294,8 @@ private func parse(data: Data) -> [Command] {
             let regEnum = resolveReg(W: W, reg: reg)
             let (data0, data1) = readDataFields(wide: W, dataIterator: &i)
             cmds.append(Command(opcode: .short(.movImmediateToRegMem),
-                                dsv: false,
+                                d: nil,
+                                s: nil,
                                 w: W,
                                 mod: nil,
                                 reg: regEnum,
@@ -69,7 +318,8 @@ private func parse(data: Data) -> [Command] {
                 let (modEnum, reg, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &i, W: W)
                 let regEnum = resolveReg(W: W, reg: reg)
                 cmds.append(Command(opcode: .simple(simpleOpcode),
-                                    dsv: D,
+                                    d: D,
+                                    s: nil,
                                     w: W,
                                     mod: modEnum,
                                     reg: regEnum,
@@ -85,7 +335,8 @@ private func parse(data: Data) -> [Command] {
                 let W = (b & 0b0000_0001) != 0
                 let (data0, data1) = readDataFields(wide: W, dataIterator: &i)
                 cmds.append(Command(opcode: .simple(simpleOpcode),
-                                    dsv: S,
+                                    d: nil,
+                                    s: S,
                                     w: W,
                                     mod: nil,
                                     reg: nil,
@@ -116,7 +367,8 @@ private func parse(data: Data) -> [Command] {
                 data1 = UInt8((data16 >> 8) & 0x00FF)
             }
             cmds.append(Command(opcode: opcodeEnum,
-                                dsv: S,
+                                d: nil,
+                                s: S,
                                 w: W,
                                 mod: modEnum,
                                 reg: nil,
@@ -205,7 +457,8 @@ private func readDataFields(wide: Bool, dataIterator i: inout DataIterator) -> (
 
 struct Command {
     let opcode: Opcode
-    let dsv: Bool // D/S/V
+    let d: Bool?
+    let s: Bool?
     let w: Bool
     let mod: Mod?
     let reg: Reg?
@@ -308,8 +561,8 @@ private func makeSource(cmds: [Command]) -> String {
             
             if let reg = c.reg {    // register <-> memory
                 let regStr = asmString(reg)
-                first = c.dsv ? regStr : rmStr
-                second = !c.dsv ? regStr : rmStr
+                first = c.d! ? regStr : rmStr
+                second = !c.d! ? regStr : rmStr
             }
             else {  // immediate to register/memory - constant
                 first = rmStr
@@ -468,7 +721,7 @@ extension Command: CustomStringConvertible {
     var description: String {
         var str = ""
         str += asmString(self.opcode) + ": "
-        str += "d/s/v: \(dsv) \t w: \(w) \t mod: \(mod.str) \t \(reg.str) \t rm: \(rm.str) \t "
+        str += "d: \(d.str) \t s: \(s.str) \t w: \(w) \t mod: \(mod.str) \t \(reg.str) \t rm: \(rm.str) \t "
         str += "disp0: \(disp0.str) \t disp1: \(disp1.str) \t data0: \(data0.str) \t data1: \(data1.str)"
         return str
     }

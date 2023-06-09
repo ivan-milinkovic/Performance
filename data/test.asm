@@ -1,3 +1,3 @@
 bits 16
 
-cmp ax, 10
+mov cx, 12
