@@ -64,10 +64,12 @@ struct Flags {
 }
 
 func runCommands(_ cmds: [Command]) {
-    for (i, c) in cmds.enumerated() {
+//    var i = -1
+    for c in cmds {
         
-        print(i)
-        print(c)
+//        i += 1
+//        print(i)
+//        print(c)
         
         let args = makeCommandArgs(c)
         let optype = operationType(forOpcode: c.opcode)
@@ -97,8 +99,9 @@ func runCommands(_ cmds: [Command]) {
             flags.S = (result & 0b1000_000) != 0
         }
         
-        print(registers)
+//        print(registers)
     }
+    print(registers)
 }
 
 
@@ -729,8 +732,14 @@ extension SimpleOpcode {
 
 
 //
-// Printing
+// MARK: - Printing
 //
+
+extension Registers: CustomStringConvertible {
+    var description: String {
+        "Registers: \nA: \(A) \nB: \(B) \nC: \(C) \nD: \(D) \nSP: \(SP) \nBP: \(BP) \nSI: \(SI) \nDI: \(DI)"
+    }
+}
 
 extension Command: CustomStringConvertible {
     var description: String {
