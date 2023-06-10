@@ -307,6 +307,7 @@ final class PerformanceTests: XCTestCase {
     }
     
     func testRunBinary1() {
+        reset()
         var binary: Data
         
         // add ax, 1000

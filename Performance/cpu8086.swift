@@ -342,7 +342,7 @@ private func parse(data: Data) -> [Command] {
                                     s: S,
                                     w: W,
                                     mod: nil,
-                                    reg: .AX,
+                                    reg: W ? .AX : .AL,
                                     rm: nil,
                                     disp0: nil,
                                     disp1: nil,
