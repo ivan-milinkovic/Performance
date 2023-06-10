@@ -8,8 +8,8 @@ private let inputFile =
 //"listing37"
 //"listing38course"
 //"listing39course"
-"listing41"
-//"listing41course"
+//"listing41"
+"listing41course"
 //"test"
 
 
@@ -89,7 +89,7 @@ func runCommands(_ cmds: [Command]) {
             let dstVal = args.dest!.read(registers)
             var sign : Int16 = 1
             if optype == .sub || optype == .cmp { sign = -1 }
-            let result = UInt16(Int16(truncatingIfNeeded: dstVal) + sign * Int16(truncatingIfNeeded: value))
+            let result = UInt16(truncatingIfNeeded: Int16(truncatingIfNeeded: dstVal) + sign * Int16(truncatingIfNeeded: value))
             
             if optype == .add || optype == .sub {
                 args.dest!.write(value: result, registers: &registers)
