@@ -1,22 +1,25 @@
 import Foundation
 
+// https://github.com/cmuratori/computer_enhance/tree/main/perfaware/part1
+
 private let inputFile =
 //"listing37"
-//"listing38"
-//"listing39"
+//"listing38course"
+"listing39course"
 //"listing41"
-"test"
+//"listing41course"
+//"test"
 
 
 func testcpu() {
     let data = loadFile()
-    print(data.binStr)
+//    print(data.binStr)
     
     let cmds = parse(data: data)
-    run(cmds)
+//    run(cmds)
     
-//    let asm = dissasemble(data)
-//    print("\nAsm:"); print(asm)
+    let asm = dissasemble(data)
+    print("\nAsm:"); print(asm)
     
 //    writeFile(asm)
 }
@@ -33,6 +36,10 @@ func dissasemble(_ data: Data) -> String {
 // Running
 //
 
+var registers = Registers()
+var ram = [UInt16].init(repeating: 0, count: 1024 * 1024 / 2) // UInt16 / 2 = 1 byte; 1024 * 1024 bytes = 1 MB
+var flags = Flags()
+
 struct Registers {
     var A: UInt16 = 0
     var B: UInt16 = 0
@@ -44,9 +51,10 @@ struct Registers {
     var DI: UInt16 = 0
 }
 
-var registers = Registers()
-var ram = [UInt16].init(repeating: 0, count: 1024 * 1024 / 2) // UInt16 / 2 = 1 byte; 1024 * 1024 bytes = 1 MB
-
+struct Flags {
+    var Z : Bool = false // zero, 1 if result == 0
+    var S : Bool = false // sign, 1 if result < 0, MSB = 1
+}
 
 func run(_ cmds: [Command]) {
     for c in cmds {
@@ -55,12 +63,13 @@ func run(_ cmds: [Command]) {
         
         let args = makeCommandArgs(c)
         let optype = operationType(forOpcode: c.opcode)
+        
         switch optype {
         case .mov:
             let srcVal = args.src!.read(registers)
             args.dest!.write(value: srcVal, registers: &registers)
-            
-        case .add:
+        
+        case .add, .sub, .cmp:
             var value: UInt16 = 0
             if let src = args.src {
                 value = src.read(registers)
@@ -68,30 +77,58 @@ func run(_ cmds: [Command]) {
                 value = args.data!
             }
             let dstVal = args.dest!.read(registers)
-            let result = UInt16(Int16(truncatingIfNeeded: dstVal) + Int16(truncatingIfNeeded: value))
-            args.dest!.write(value: result, registers: &registers)
+            var sign : Int16 = 1
+            if optype == .sub || optype == .cmp { sign = -1 }
+            let result = UInt16(Int16(truncatingIfNeeded: dstVal) + sign * Int16(truncatingIfNeeded: value))
             
-        case .sub:
-            var value: UInt16 = 0
-            if let src = args.src {
-                value = src.read(registers)
-            } else {
-                value = args.data!
+            if optype == .add || optype == .sub {
+                args.dest!.write(value: result, registers: &registers)
             }
-            let dstVal = args.dest!.read(registers)
-            let result = UInt16(Int16(truncatingIfNeeded: dstVal) - Int16(truncatingIfNeeded: value))
-            args.dest!.write(value: result, registers: &registers)
             
-        case .cmp:
-            var value: UInt16 = 0
-            if let src = args.src {
-                value = src.read(registers)
-            } else {
-                value = args.data!
-            }
-            let dstVal = args.dest!.read(registers)
-            let result = UInt16(Int16(truncatingIfNeeded: dstVal) + Int16(truncatingIfNeeded: value) != 0 ? 1 : 0)
-            args.dest!.write(value: result, registers: &registers)
+            flags.Z = result == 0
+            flags.S = (result & 0b1000_000) != 0
+            
+//        case .add:
+//            var value: UInt16 = 0
+//            if let src = args.src {
+//                value = src.read(registers)
+//            } else {
+//                value = args.data!
+//            }
+//            let dstVal = args.dest!.read(registers)
+//            let result = UInt16(Int16(truncatingIfNeeded: dstVal) + Int16(truncatingIfNeeded: value))
+//            args.dest!.write(value: result, registers: &registers)
+//
+//            flags.Z = result == 0
+//            flags.S = (result & 0b1000_000) != 0
+//
+//        case .sub:
+//            var value: UInt16 = 0
+//            if let src = args.src {
+//                value = src.read(registers)
+//            } else {
+//                value = args.data!
+//            }
+//            let dstVal = args.dest!.read(registers)
+//            let result = UInt16(Int16(truncatingIfNeeded: dstVal) - Int16(truncatingIfNeeded: value))
+//            args.dest!.write(value: result, registers: &registers)
+//
+//            flags.Z = result == 0
+//            flags.S = (result & 0b1000_000) != 0
+//
+//        case .cmp:
+//            var value: UInt16 = 0
+//            if let src = args.src {
+//                value = src.read(registers)
+//            } else {
+//                value = args.data!
+//            }
+//            let dstVal = args.dest!.read(registers)
+//            let result = UInt16(Int16(truncatingIfNeeded: dstVal) - Int16(truncatingIfNeeded: value))
+////            args.dest!.write(value: result, registers: &registers) // cmp not written?
+//
+//            flags.Z = result == 0
+//            flags.S = (result & 0b1000_000) != 0
         }
         
         print(registers)
@@ -149,7 +186,7 @@ private func makeCommandArgs(_ c: Command) -> CommandArgs {
         dst = D ? regLoc : rmLoc
         src = !D ? regLoc : rmLoc
     } else {
-        dst = regLoc
+        dst = regLoc ?? rmLoc
     }
     
     return CommandArgs(src: src, dest: dst, data: data)
@@ -601,7 +638,7 @@ private func asmRm(rm: RM, disp0: UInt8?, disp1: UInt8?) -> String {
         str = "["
         str += regs.map(asmString(_:)).joined(separator: " + ")
         
-        if let disp0 = disp0 {
+        if let disp0 {
             let dispStr = asmData(data0: disp0, data1: disp1)
             if dispStr != "0" {
                 str += " + " + dispStr
@@ -614,10 +651,17 @@ private func asmRm(rm: RM, disp0: UInt8?, disp1: UInt8?) -> String {
 
 private func asmData(data0: UInt8, data1: UInt8?) -> String {
     var data : UInt16 = UInt16(data0)
-    if let data1 = data1 {
+    var isNegative = (data & 0b0000_0000_1000_0000) != 0
+    if let data1 = data1 { // 16-bit
         data = (UInt16(data1) << 8) | data
+        isNegative = (data & 0b1000_0000_0000_0000) != 0
+        return isNegative ? "\(Int16(truncatingIfNeeded: data))"
+                          : "\(data)"
     }
-    return "\(data)"
+    else { // 8-bit
+        return isNegative ? "\(Int8(truncatingIfNeeded: data))"
+                          : "\(data)"
+    }
 }
 
 private func asmString(_ opcode: Opcode) -> String {
@@ -721,7 +765,7 @@ extension Command: CustomStringConvertible {
     var description: String {
         var str = ""
         str += asmString(self.opcode) + ": "
-        str += "d: \(d.str) \t s: \(s.str) \t w: \(w) \t mod: \(mod.str) \t \(reg.str) \t rm: \(rm.str) \t "
+        str += "d: \(d.str) \t s: \(s.str) \t w: \(w) \t mod: \(mod.str) \t reg: \(reg.str) \t rm: \(rm.str) \t "
         str += "disp0: \(disp0.str) \t disp1: \(disp1.str) \t data0: \(data0.str) \t data1: \(data1.str)"
         return str
     }

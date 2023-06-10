@@ -25,8 +25,8 @@ final class PerformanceTests: XCTestCase {
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
         
-        source = "bits 16\n\nmov cx, 65524\n"
-        binary = data([0b10111001, 0b11110100, 0b11111111]) // TODO: -12
+        source = "bits 16\n\nmov cx, -12\n"
+        binary = data([0b10111001, 0b11110100, 0b11111111])
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
 
@@ -36,8 +36,8 @@ final class PerformanceTests: XCTestCase {
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
         
-        source = "bits 16\n\nmov dx, 61588\n"
-        binary = data([0b10111010, 0b10010100, 0b11110000]) // TODO: -3948
+        source = "bits 16\n\nmov dx, -3948\n"
+        binary = data([0b10111010, 0b10010100, 0b11110000])
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
 
@@ -199,7 +199,7 @@ final class PerformanceTests: XCTestCase {
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
         
-        source = "bits 16\n\nadd al, 226\n" // TODO: -30
+        source = "bits 16\n\nadd al, -30\n"
         binary = data([0b00000100, 0b11100010])
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
@@ -235,13 +235,16 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(source, dissasembled.lowercased())
     }
     
-//    func testIndividual() {
-//        var source : String
-//        var binary : Data
-//        var dissasembled : String
-//        
-//        
-//    }
+    func testIndividual() {
+        var source : String
+        var binary : Data
+        var dissasembled : String
+        
+        source = "bits 16\n\nadd al, -30\n"
+        binary = data([0b00000100, 0b11100010])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
+    }
     
     func data(_ bytes: [UInt8]) -> Data {
         let data = Data(bytes)

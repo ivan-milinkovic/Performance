@@ -1,3 +1,3 @@
 bits 16
 
-mov cx, 12
+add si, 2
