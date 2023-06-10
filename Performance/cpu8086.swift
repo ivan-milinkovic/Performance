@@ -1,12 +1,14 @@
 import Foundation
 
+// https://edge.edx.org/c4x/BITSPilani/EEE231/asset/8086_family_Users_Manual_1_.pdf
 // https://github.com/cmuratori/computer_enhance/tree/main/perfaware/part1
+// https://yassinebridi.github.io/asm-docs/8086_instruction_set.html
 
 private let inputFile =
 //"listing37"
 //"listing38course"
-"listing39course"
-//"listing41"
+//"listing39course"
+"listing41"
 //"listing41course"
 //"test"
 
@@ -16,12 +18,17 @@ func testcpu() {
 //    print(data.binStr)
     
     let cmds = parse(data: data)
-//    run(cmds)
+    runCommands(cmds)
     
-    let asm = dissasemble(data)
-    print("\nAsm:"); print(asm)
+//    let asm = dissasemble(data)
+//    print("\nAsm:"); print(asm)
     
 //    writeFile(asm)
+}
+
+func runBinary(_ data: Data) {
+    let cmds = parse(data: data)
+    runCommands(cmds)
 }
 
 
@@ -56,9 +63,10 @@ struct Flags {
     var S : Bool = false // sign, 1 if result < 0, MSB = 1
 }
 
-func run(_ cmds: [Command]) {
-    for c in cmds {
+func runCommands(_ cmds: [Command]) {
+    for (i, c) in cmds.enumerated() {
         
+        print(i)
         print(c)
         
         let args = makeCommandArgs(c)
@@ -175,7 +183,7 @@ private func makeCommandArgs(_ c: Command) -> CommandArgs {
         if let data1 = c.data1 {
             data = (UInt16(truncatingIfNeeded: data1) << 8) | UInt16(truncatingIfNeeded: data0)
         } else {
-            data = c.s! ? UInt16(data0) : UInt16(truncatingIfNeeded: data0)
+            data = (c.s ?? false) ? UInt16(data0) : UInt16(truncatingIfNeeded: data0)
         }
     }
     
@@ -376,7 +384,7 @@ private func parse(data: Data) -> [Command] {
                                     s: S,
                                     w: W,
                                     mod: nil,
-                                    reg: nil,
+                                    reg: .AX,
                                     rm: nil,
                                     disp0: nil,
                                     disp1: nil,
@@ -593,7 +601,7 @@ private func makeSource(cmds: [Command]) -> String {
         if let rm = c.rm {
             let rmStr = asmRm(rm: rm, disp0: c.disp0, disp1: c.disp1)
             
-            let first: String
+            var first: String
             let second: String
             
             if let reg = c.reg {    // register <-> memory
@@ -604,6 +612,11 @@ private func makeSource(cmds: [Command]) -> String {
             else {  // immediate to register/memory - constant
                 first = rmStr
                 second = asmData(data0: c.data0!, data1: c.data1)
+                
+                // word/byte, "add byte [bx], 34", examples: "add word [bp + si + 1000], 29"
+//                if c.data1 == nil {
+//                    str.append((c.w ? "word" : "byte") + " ")
+//                }
             }
             
             str.append(first + ", " + second)

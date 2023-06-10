@@ -2,7 +2,12 @@ import XCTest
 
 final class PerformanceTests: XCTestCase {
     
-    func test8086() {
+    func data(_ bytes: [UInt8]) -> Data {
+        let data = Data(bytes)
+        return data
+    }
+    
+    func test8086Asm() {
         
         var source : String
         var binary : Data
@@ -20,6 +25,11 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(source, dissasembled.lowercased())
 
         // 8-bit (immediate) to reg:
+        source = "bits 16\n\nmov cl, 12\n"
+        binary = data([0b10110001, 0b00001100])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
+        
         source = "bits 16\n\nmov cx, 12\n"
         binary = data([0b10111001, 0b00001100, 0b00000000])
         dissasembled = dissasemble(binary)
@@ -235,19 +245,75 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(source, dissasembled.lowercased())
     }
     
-    func testIndividual() {
+    func testIndividualAsm() {
         var source : String
         var binary : Data
         var dissasembled : String
-        
-        source = "bits 16\n\nadd al, -30\n"
-        binary = data([0b00000100, 0b11100010])
+
+        source = "bits 16\n\nmov dx, [bp]\n"
+        binary = data([0b10001011, 0b01010110, 0b00000000])
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
     }
     
-    func data(_ bytes: [UInt8]) -> Data {
-        let data = Data(bytes)
-        return data
+    func testRunBinary() {
+        var binary: Data
+        
+        // mov dx, [bp]
+        reset()
+        registers.BP = 0
+        ram[Int(registers.BP)] = 10
+        binary = data([0b10001011, 0b01010110, 0b00000000])
+        runBinary(binary)
+        XCTAssertEqual(registers.D, 10)
+        
+        // mov si, bx
+        reset()
+        registers.B = 10
+        binary = data([0b10001001, 0b11011110])
+        runBinary(binary)
+        XCTAssertEqual(registers.SI, 10)
+        
+        // mov cl, 12
+        binary = data([0b10110001, 0b00001100])
+        runBinary(binary)
+        XCTAssertEqual(registers.C, 12)
+        
+        // add ax, 1000
+        binary = data([0b00000101, 0b11101000, 0b00000011])
+        runBinary(binary)
+        XCTAssertEqual(registers.A, 1000)
     }
+    
+    func reset() {
+        resetRegisters()
+        resetFlags()
+    }
+    
+    func resetRegisters() {
+        registers.A = 0
+        registers.B = 0
+        registers.C = 0
+        registers.D = 0
+        registers.SP = 0
+        registers.BP = 0
+        registers.SI = 0
+        registers.DI = 0
+    }
+    
+    func resetFlags() {
+        flags.Z = false
+        flags.S = false
+    }
+    
+    func testRunBinary1() {
+        var binary: Data
+        
+        // add ax, 1000
+        binary = data([0b00000101, 0b11101000, 0b00000011])
+        runBinary(binary)
+        XCTAssertEqual(registers.A, 1000)
+    }
+    
 }
+
