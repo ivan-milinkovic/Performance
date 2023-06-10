@@ -95,48 +95,6 @@ func runCommands(_ cmds: [Command]) {
             
             flags.Z = result == 0
             flags.S = (result & 0b1000_000) != 0
-            
-//        case .add:
-//            var value: UInt16 = 0
-//            if let src = args.src {
-//                value = src.read(registers)
-//            } else {
-//                value = args.data!
-//            }
-//            let dstVal = args.dest!.read(registers)
-//            let result = UInt16(Int16(truncatingIfNeeded: dstVal) + Int16(truncatingIfNeeded: value))
-//            args.dest!.write(value: result, registers: &registers)
-//
-//            flags.Z = result == 0
-//            flags.S = (result & 0b1000_000) != 0
-//
-//        case .sub:
-//            var value: UInt16 = 0
-//            if let src = args.src {
-//                value = src.read(registers)
-//            } else {
-//                value = args.data!
-//            }
-//            let dstVal = args.dest!.read(registers)
-//            let result = UInt16(Int16(truncatingIfNeeded: dstVal) - Int16(truncatingIfNeeded: value))
-//            args.dest!.write(value: result, registers: &registers)
-//
-//            flags.Z = result == 0
-//            flags.S = (result & 0b1000_000) != 0
-//
-//        case .cmp:
-//            var value: UInt16 = 0
-//            if let src = args.src {
-//                value = src.read(registers)
-//            } else {
-//                value = args.data!
-//            }
-//            let dstVal = args.dest!.read(registers)
-//            let result = UInt16(Int16(truncatingIfNeeded: dstVal) - Int16(truncatingIfNeeded: value))
-////            args.dest!.write(value: result, registers: &registers) // cmp not written?
-//
-//            flags.Z = result == 0
-//            flags.S = (result & 0b1000_000) != 0
         }
         
         print(registers)
