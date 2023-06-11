@@ -250,6 +250,24 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(source, dissasembled.lowercased())
     }
     
+    func testAsmFile38() {
+        let file = "listing_0038_many_register_mov"
+        let data = loadFile(file)
+        let asm = dissasemble(data)
+        
+        let expectedAsm = String.init(data: loadFile(file + "_clean.asm"), encoding: .ascii)
+        XCTAssertEqual(asm.lowercased(), expectedAsm)
+    }
+    
+    func testAsmFile39() {
+        let file = "listing_0039_more_movs"
+        let data = loadFile(file)
+        let asm = dissasemble(data)
+        
+        let expectedAsm = String.init(data: loadFile(file + "_clean.asm"), encoding: .ascii)
+        XCTAssertEqual(asm.lowercased(), expectedAsm)
+    }
+    
     func testIndividualAsm() {
         var source : String
         var binary : Data
@@ -288,6 +306,22 @@ final class PerformanceTests: XCTestCase {
         binary = data([0b00000101, 0b11101000, 0b00000011])
         runBinary(binary)
         XCTAssertEqual(registers.A, 1000)
+    }
+    
+    func testRunningListing43() {
+        reset()
+        let data = loadFile("listing_0043_immediate_movs")
+        runBinary(data)
+        let expected = Registers(A: 1, B: 2, C: 3, D: 4, SP: 5, BP: 6, SI: 7, DI: 8)
+        XCTAssertEqual(registers, expected)
+    }
+    
+    func testRunnningListing44() {
+        reset()
+        let data = loadFile("listing_0044_register_movs")
+        runBinary(data)
+        let expected = Registers(A: 4, B: 3, C: 2, D: 1, SP: 1, BP: 2, SI: 3, DI: 4)
+        XCTAssertEqual(registers, expected)
     }
     
     func reset() {
