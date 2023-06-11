@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "33F16625-1A82-4EA2-AE91-B3CD495CEA3C",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Performance.xcodeproj",
+        "identifier" : "2CBE79BA2A3060440016B8C9",
+        "name" : "PerformanceTests"
+      }
+    }
+  ],
+  "version" : 1
+}

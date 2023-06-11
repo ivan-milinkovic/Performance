@@ -7,13 +7,13 @@ import Foundation
 private let inputFile =
 //"listing_0043_immediate_movs"
 //"listing_0044_register_movs"
-"listing_0041_add_sub_cmp_jnz"
+"listing_0046_add_sub_cmp"
 //"test"
 
 
 func testcpu() {
-    testDissasembly()
-//    testRunning()
+//    testDissasembly()
+    testRunning()
 }
 
 private func testDissasembly() {
@@ -35,9 +35,9 @@ func runBinary(_ data: Data) {
     var dataIterator = DataIterator(data: data)
     while dataIterator.hasMore {
         let cmd = parse(dataIterator: &dataIterator)
-//        let asm = makeSource(cmd: cmd)
-//        print(asm)
-        runCommand(cmd)
+        let asm = makeSource(cmd: cmd)
+        print(asm)
+        runCommand(cmd, dataIter: &dataIterator)
     }
     print(registers)
 }
@@ -70,11 +70,15 @@ struct Registers {
 }
 
 struct Flags {
-    var Z : Bool = false // zero, 1 if result == 0
-    var S : Bool = false // sign, 1 if result < 0, MSB = 1
+    var Z = false // zero, 1 if result == 0
+    var S = false // sign, 1 if result < 0, MSB = 1
+    // not calculated currently
+    var O = false // overflow
+    var C = false // carry
+    var P = false // parity
 }
 
-func runCommand(_ cmd: Command) {
+func runCommand(_ cmd: Command, dataIter: inout DataIterator) {
     let args = makeCommandArgs(cmd)
     let optype = operationType(forOpcode: cmd.opcode)
     
@@ -103,7 +107,61 @@ func runCommand(_ cmd: Command) {
         flags.S = (result & 0b1000_000) != 0
         
     case .jmp:
-        fatalError()
+        guard case let Opcode.long(longOpcode) = cmd.opcode else { fatalError() }
+        jump(longOpcode: longOpcode, disp: cmd.disp0!, dataIter: &dataIter)
+    }
+}
+
+private func jump(longOpcode: LongOpcode, disp: UInt8, dataIter: inout DataIterator) {
+    let disp = Int(Int8(truncatingIfNeeded: disp))
+    if checkCondition(longOpcode: longOpcode) {
+        dataIter.index += disp
+    }
+}
+
+// https://stackoverflow.com/a/53452319/3729266
+/*
+ Mnemonic        Condition tested  Description
+ jo              OF = 1            overflow
+ jno             OF = 0            not overflow
+ jc, jb, jnae    CF = 1            carry / below / not above nor equal
+ jnc, jae, jnb   CF = 0            not carry / above or equal / not below
+ je, jz          ZF = 1            equal / zero
+ jne, jnz        ZF = 0            not equal / not zero
+ jbe, jna        CF or ZF = 1      below or equal / not above
+ ja, jnbe        CF or ZF = 0      above / not below or equal
+ js              SF = 1            sign
+ jns             SF = 0            not sign
+ jp, jpe         PF = 1            parity / parity even
+ jnp, jpo        PF = 0            not parity / parity odd
+ jl, jnge        SF xor OF = 1     less / not greater nor equal
+ jge, jnl        SF xor OF = 0     greater or equal / not less
+ jle, jng    (SF xor OF) or ZF = 1 less or equal / not greater
+ jg, jnle    (SF xor OF) or ZF = 0 greater / not less nor equal
+ */
+private func checkCondition(longOpcode: LongOpcode) -> Bool {
+    switch longOpcode {
+    case .JE: return flags.Z
+    case .JL: return flags.S != flags.O // xor
+    case .JLE: return (flags.S != flags.O) || flags.Z
+    case .JB: return flags.C
+    case .JBE: return flags.C || flags.Z
+    case .JP: return flags.P
+    case .JO: return flags.O
+    case .JS: return flags.S
+    case .JNE: return !flags.Z
+    case .JNL: return flags.S != flags.O
+    case .JG: return (flags.S != flags.O) || !flags.Z
+    case .JNB: return !flags.C
+    case .JA: return flags.C || flags.Z
+    case .JNP: return !flags.P
+    case .JNO: return !flags.O
+    case .JNS: return !flags.S
+    
+    case .LOOP: return registers.C != 0 // manual: "run CX times"?
+    case .LOOPZ: return flags.Z
+    case .LOOPNZ: return !flags.Z
+    case .JCXZ: return registers.C == 0
     }
 }
 
@@ -377,7 +435,7 @@ private func parse(dataIterator dataIter: inout DataIterator) -> Command {
         
         let opcodeEnum = Opcode.composite(.AddSubCmp(CompositeOpcode.Part2(rawValue: opcodePart2)!))
         
-        var (data0, data1) = readDataFields(wide: false, dataIterator: &dataIter)
+        var (data0, data1) = readDataFields(wide: (!S && W), dataIterator: &dataIter)
         if S {
             let data16 = Int16(data0)
             data0 = UInt8(data16 & 0x00FF)
@@ -404,7 +462,7 @@ private func parse(dataIterator dataIter: inout DataIterator) -> Command {
                                     disp0: disp0, disp1: nil, data0: nil, data1: nil)
     }
     
-    fatalError("Unhandled byte: \(b.binStr)")
+     fatalError("Unhandled byte: \(b.binStr)")
 }
 
 
@@ -748,8 +806,10 @@ struct DataIterator: IteratorProtocol {
         self.data = data
     }
     mutating func next() -> UInt8? {
-        defer { index += 1 }
-        return (index < data.count) ? data[index] : nil
+        if (index >= data.count) { return nil }
+        let byte = data[index]
+        index += 1
+        return byte
     }
     
     var hasMore: Bool {
