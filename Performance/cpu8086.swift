@@ -89,7 +89,7 @@ func runCommands(_ cmds: [Command]) {
             let dstVal = args.dest!.read(registers)
             var sign : Int16 = 1
             if optype == .sub || optype == .cmp { sign = -1 }
-            let result = UInt16(truncatingIfNeeded: Int16(truncatingIfNeeded: dstVal) + sign * Int16(truncatingIfNeeded: value))
+            let result = UInt16(bitPattern: Int16(truncatingIfNeeded: dstVal) + sign * Int16(bitPattern: value))
             
             if optype == .add || optype == .sub {
                 args.dest!.write(value: result, registers: &registers)
@@ -134,9 +134,9 @@ private func makeCommandArgs(_ c: Command) -> CommandArgs {
                 let regVal = registers[keyPath: regLoc] // These registers are full access, like BP
                 ptr += regVal
             }
-            var disp = UInt16(truncatingIfNeeded: c.disp0!)
+            var disp = UInt16(c.disp0!)
             if let disp1 = c.disp1 {
-                disp = (UInt16(truncatingIfNeeded: disp1) << 8) | disp
+                disp = (UInt16(disp1) << 8) | disp
             }
             ptr += disp
             rmLoc = Location.mem(index: Int(ptr), W: c.w)
