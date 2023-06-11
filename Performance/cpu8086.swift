@@ -32,6 +32,7 @@ private func testRunning() {
 }
 
 func runBinary(_ data: Data) {
+    registers.IP = 0
     var dataIterator = DataIterator(data: data)
     while dataIterator.hasMore {
         let cmd = parse(dataIterator: &dataIterator)
@@ -44,6 +45,7 @@ func runBinary(_ data: Data) {
 
 
 func dissasemble(_ data: Data) -> String {
+    registers.IP = 0
     let cmds = parse(data: data)
     let asm = makeSource(cmds: cmds)
     return asm
@@ -801,8 +803,14 @@ func writeFile(_ name: String, asm: String) {
 
 struct DataIterator: IteratorProtocol {
     private let data: Data
-    var index = 0 {
-        didSet { precondition(0 <= index) }
+    var index: Int {
+        get {
+            registers.IP
+        }
+        set {
+            precondition(0 <= index)
+            registers.IP = newValue
+        }
     }
     init(data: Data) {
         self.data = data
@@ -858,7 +866,7 @@ extension SimpleOpcode {
 
 extension Registers: CustomStringConvertible {
     var description: String {
-        "Registers: \nA: \(A) \nB: \(B) \nC: \(C) \nD: \(D) \nSP: \(SP) \nBP: \(BP) \nSI: \(SI) \nDI: \(DI) \nflags: \(flags)"
+        "Registers: \nA: \(A) \nB: \(B) \nC: \(C) \nD: \(D) \nSP: \(SP) \nBP: \(BP) \nSI: \(SI) \nDI: \(DI) \nIP: \(IP) \nflags: \(flags)"
     }
 }
 
