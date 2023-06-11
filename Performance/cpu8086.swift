@@ -9,19 +9,19 @@ private let inputFile =
 //"listing38course"
 //"listing39course"
 //"listing41"
-"listing41course"
-//"test"
+//"listing41course"
+"test"
 
 
 func testcpu() {
     let data = loadFile()
-//    print(data.binStr)
+    print(data.binStr)
     
     let cmds = parse(data: data)
-    runCommands(cmds)
+//    runCommands(cmds)
     
-//    let asm = dissasemble(data)
-//    print("\nAsm:"); print(asm)
+    let asm = makeSource(cmds: cmds)
+    print("\nAsm:"); print(asm)
     
 //    writeFile(asm)
 }
@@ -97,6 +97,9 @@ func runCommands(_ cmds: [Command]) {
             
             flags.Z = result == 0
             flags.S = (result & 0b1000_000) != 0
+            
+        case .jmp:
+            fatalError()
         }
         
 //        print(registers)
@@ -187,6 +190,7 @@ enum OperationType {
     case add
     case sub
     case cmp
+    case jmp
 }
 
 struct CommandArgs {
@@ -265,6 +269,9 @@ private func operationType(forOpcode opcode: Opcode) -> OperationType {
         case .subRegMem, .subImmediateToAcc: return .sub
         case .cmpRegMem, .cmpImmediateToAcc: return .cmp
         }
+        
+    case .long(_):
+        return .jmp
         
     case .composite(let compositeOpcode):
         switch compositeOpcode {
@@ -386,7 +393,16 @@ private func parse(data: Data) -> [Command] {
             continue
         }
         
-        fatalError("Unhandled byte: \(opcode.binStr)")
+        // Check full byte codes
+        
+        if let longOpcode = LongOpcode(rawValue: b) {
+            let (disp0, _) = readDataFields(wide: false, dataIterator: &i)
+            cmds.append(Command(opcode: .long(longOpcode), d: nil, s: nil, w: false, mod: nil, reg: nil, rm: nil,
+                                             disp0: disp0, disp1: nil, data0: nil, data1: nil))
+            continue
+        }
+        
+        fatalError("Unhandled byte: \(b.binStr)")
     }
     return cmds
 }
@@ -478,6 +494,7 @@ struct Command {
 enum Opcode {
     case short(ShortOpcode)
     case simple(SimpleOpcode)
+    case long(LongOpcode)
     case composite(CompositeOpcode)
 }
 
@@ -497,6 +514,29 @@ enum SimpleOpcode: UInt8 {
     
     case cmpRegMem = 0b001110
     case cmpImmediateToAcc = 0b001111
+}
+
+enum LongOpcode: UInt8 {
+    case JE     = 0b0111_0100 // <=> JZ
+    case JL     = 0b0111_1100 // <=> JNG
+    case JLE    = 0b0111_1110 // <=> JNG
+    case JB     = 0b0111_0010 // <=> JNAE
+    case JBE    = 0b0111_0110 // <=> JNA
+    case JP     = 0b0111_1010 // <=> JPE
+    case JO     = 0b0111_0000
+    case JS     = 0b0111_1000
+    case JNE    = 0b0111_0101 // <=> JNZ
+    case JNL    = 0b0111_1101 // <=> JGE
+    case JG     = 0b0111_1111 // <=> JNLE
+    case JNB    = 0b0111_0011 // <=> JAE
+    case JA     = 0b0111_0111 // <=> JNBE
+    case JNP    = 0b0111_1011 // <=> JPO
+    case JNO    = 0b0111_0001
+    case JNS    = 0b0111_1001
+    case LOOP   = 0b1110_0010
+    case LOOPZ  = 0b1110_0001 // <=> LOOPE
+    case LOOPNZ = 0b1110_0000 // <=> LOOPNE
+    case JCXZ   = 0b1110_0011
 }
 
 enum CompositeOpcode {
@@ -556,7 +596,6 @@ private func makeSource(cmds: [Command]) -> String {
     var str = "bits 16\n\n"
     for c in cmds {
         str.append(asmString(c.opcode))
-        str.append(" ")
         
         // Check R/M first as reg might not exist
         if let rm = c.rm {
@@ -580,20 +619,25 @@ private func makeSource(cmds: [Command]) -> String {
 //                }
             }
             
-            str.append(first + ", " + second)
+            str.append(" " + first + ", " + second)
         }
         
         else if let reg = c.reg { // immediate to register only - constant
             let regStr = asmString(reg)
             let dataStr = asmData(data0: c.data0!, data1: c.data1)
-            str.append(regStr + ", " + dataStr)
+            str.append(" " + regStr + ", " + dataStr)
         }
         
-        else {
+        else if let data0 = c.data0 {
             let reg: Reg = c.w ? Reg.AX : Reg.AL
             let regStr = asmString(reg)
-            let dataStr = asmData(data0: c.data0!, data1: c.data1)
-            str.append(regStr + ", " + dataStr)
+            let dataStr = asmData(data0: data0, data1: c.data1)
+            str.append(" " + regStr + ", " + dataStr)
+        }
+        
+        else if let disp0 = c.disp0 { // jumps
+            let disp = Int8(truncatingIfNeeded: disp0)
+            str.append(", \(disp)")
         }
         
         str += "\n"
@@ -651,6 +695,8 @@ private func asmString(_ opcode: Opcode) -> String {
         case .subRegMem, .subImmediateToAcc: return "SUB"
         case .cmpRegMem, .cmpImmediateToAcc: return "CMP"
         }
+    case .long(let longOpcode):
+        return "\(longOpcode)"
     case .composite(let compositeOpcode):
         switch compositeOpcode {
         case .AddSubCmp(let suffix):

@@ -243,6 +243,11 @@ final class PerformanceTests: XCTestCase {
         binary = data([0b10000011, 0b11111000, 0b00001010])
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
+        
+        source = "bits 16\n\njne, -2\n"
+        binary = data([0b01110101, 0b11111110])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
     }
     
     func testIndividualAsm() {
@@ -250,8 +255,8 @@ final class PerformanceTests: XCTestCase {
         var binary : Data
         var dissasembled : String
 
-        source = "bits 16\n\nmov dx, [bp]\n"
-        binary = data([0b10001011, 0b01010110, 0b00000000])
+        source = "bits 16\n\njne, -2\n"
+        binary = data([0b01110101, 0b11111110])
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
     }

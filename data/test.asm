@@ -1,3 +1,4 @@
 bits 16
 
-add ax, 1000
+test_label0:
+jnz test_label0
