@@ -402,6 +402,25 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(registers, expected)
     }
     
+    func testRunnningListing48() {
+        reset()
+        let data = loadFile("listing_0048_ip_register")
+        runBinary(data)
+        let expected = Registers(A: 0, B: 2000, C: 64736, D: 0, SP: 0, BP: 0, SI: 0, DI: 0, IP: 14, flags: Flags(Z: false, S: true))
+        XCTAssertEqual(registers, expected)
+    }
+    
+    
+    func testRunBinary1() {
+        reset()
+        var binary: Data
+        
+        // mov cx, 12
+        binary = data([0b10110001, 0b00001100])
+        runBinary(binary)
+        XCTAssertEqual(registers.C, 12)
+    }
+    
     func reset() {
         registers.A = 0
         registers.B = 0
@@ -419,16 +438,5 @@ final class PerformanceTests: XCTestCase {
         registers.flags.C = false
         registers.flags.P = false
     }
-    
-    func testRunBinary1() {
-        reset()
-        var binary: Data
-        
-        // add ax, 1000
-        binary = data([0b00000101, 0b11101000, 0b00000011])
-        runBinary(binary)
-        XCTAssertEqual(registers.A, 1000)
-    }
-    
 }
 

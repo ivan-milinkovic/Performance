@@ -7,8 +7,8 @@ import Foundation
 private let inputFile =
 //"listing_0043_immediate_movs"
 //"listing_0044_register_movs"
-"listing_0046_add_sub_cmp"
-//"test"
+//"listing_0046_add_sub_cmp"
+"test"
 
 
 func testcpu() {
@@ -36,8 +36,7 @@ func runBinary(_ data: Data) {
     var dataIterator = DataIterator(data: data)
     while dataIterator.hasMore {
         let cmd = parse(dataIterator: &dataIterator)
-        let asm = makeSource(cmd: cmd)
-        print(asm)
+        print(makeSource(cmd: cmd))
         runCommand(cmd, dataIter: &dataIterator)
     }
     print(registers)
@@ -87,7 +86,12 @@ func runCommand(_ cmd: Command, dataIter: inout DataIterator) {
     
     switch optype {
     case .mov:
-        let srcVal = args.src!.read(registers)
+        let srcVal: UInt16
+        if let src = args.src {
+            srcVal = src.read(registers)
+        } else {
+            srcVal = args.data!
+        }
         args.dest!.write(value: srcVal, registers: &registers)
         
     case .add, .sub, .cmp:
@@ -320,7 +324,7 @@ private func operationType(forOpcode opcode: Opcode) -> OperationType {
     case .short(let shortOpcode):
         
         switch shortOpcode {
-        case .movImmediateToReg: return .add
+        case .movImmediateToReg: return .mov
         }
         
     case .simple(let simpleOpcode):
