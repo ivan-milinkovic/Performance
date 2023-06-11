@@ -410,6 +410,13 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(registers, expected)
     }
     
+    func testRunnningListing49() {
+        reset()
+        let data = loadFile("listing_0049_conditional_jumps")
+        runBinary(data)
+        let expected = Registers(A: 0, B: 1030, C: 0, D: 0, SP: 0, BP: 0, SI: 0, DI: 0, IP: 14, flags: Flags(Z: true, S: false))
+        XCTAssertEqual(registers, expected)
+    }
     
     func testRunBinary1() {
         reset()

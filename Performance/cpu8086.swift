@@ -8,7 +8,9 @@ private let inputFile =
 //"listing_0043_immediate_movs"
 //"listing_0044_register_movs"
 //"listing_0046_add_sub_cmp"
-"test"
+//"listing_0048_ip_register"
+"listing_0049_conditional_jumps"
+//"test"
 
 
 func testcpu() {
