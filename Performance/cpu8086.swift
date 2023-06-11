@@ -56,7 +56,6 @@ func dissasemble(_ data: Data) -> String {
 
 var registers = Registers()
 var ram = [UInt16].init(repeating: 0, count: 1024 * 1024 / 2) // UInt16 / 2 = 1 byte; 1024 * 1024 bytes = 1 MB
-var flags = Flags()
 
 struct Registers {
     var A: UInt16 = 0
@@ -67,6 +66,8 @@ struct Registers {
     var BP: UInt16 = 0
     var SI: UInt16 = 0
     var DI: UInt16 = 0
+    var IP : Int = 0
+    var flags = Flags()
 }
 
 struct Flags {
@@ -103,8 +104,8 @@ func runCommand(_ cmd: Command, dataIter: inout DataIterator) {
             args.dest!.write(value: result, registers: &registers)
         }
         
-        flags.Z = result == 0
-        flags.S = (result & 0b1000_000) != 0
+        registers.flags.Z = result == 0
+        registers.flags.S = (result & 0b1000_000) != 0
         
     case .jmp:
         guard case let Opcode.long(longOpcode) = cmd.opcode else { fatalError() }
@@ -141,26 +142,26 @@ private func jump(longOpcode: LongOpcode, disp: UInt8, dataIter: inout DataItera
  */
 private func checkCondition(longOpcode: LongOpcode) -> Bool {
     switch longOpcode {
-    case .JE: return flags.Z
-    case .JL: return flags.S != flags.O // xor
-    case .JLE: return (flags.S != flags.O) || flags.Z
-    case .JB: return flags.C
-    case .JBE: return flags.C || flags.Z
-    case .JP: return flags.P
-    case .JO: return flags.O
-    case .JS: return flags.S
-    case .JNE: return !flags.Z
-    case .JNL: return flags.S != flags.O
-    case .JG: return (flags.S != flags.O) || !flags.Z
-    case .JNB: return !flags.C
-    case .JA: return flags.C || flags.Z
-    case .JNP: return !flags.P
-    case .JNO: return !flags.O
-    case .JNS: return !flags.S
+    case .JE : return registers.flags.Z
+    case .JL : return registers.flags.S != registers.flags.O // xor
+    case .JLE: return (registers.flags.S != registers.flags.O) || registers.flags.Z
+    case .JB : return registers.flags.C
+    case .JBE: return registers.flags.C || registers.flags.Z
+    case .JP : return registers.flags.P
+    case .JO : return registers.flags.O
+    case .JS : return registers.flags.S
+    case .JNE: return !registers.flags.Z
+    case .JNL: return registers.flags.S != registers.flags.O
+    case .JG : return (registers.flags.S != registers.flags.O) || !registers.flags.Z
+    case .JNB: return !registers.flags.C
+    case .JA : return registers.flags.C || registers.flags.Z
+    case .JNP: return !registers.flags.P
+    case .JNO: return !registers.flags.O
+    case .JNS: return !registers.flags.S
     
     case .LOOP: return registers.C != 0 // manual: "run CX times"?
-    case .LOOPZ: return flags.Z
-    case .LOOPNZ: return !flags.Z
+    case .LOOPZ: return registers.flags.Z
+    case .LOOPNZ: return !registers.flags.Z
     case .JCXZ: return registers.C == 0
     }
 }
@@ -784,6 +785,7 @@ private func asmString(_ r: Reg) -> String {
 // MARK: - Util
 //
 
+extension Flags: Equatable { }
 extension Registers: Equatable { }
 
 func loadFile(_ name: String) -> Data {
@@ -856,7 +858,13 @@ extension SimpleOpcode {
 
 extension Registers: CustomStringConvertible {
     var description: String {
-        "Registers: \nA: \(A) \nB: \(B) \nC: \(C) \nD: \(D) \nSP: \(SP) \nBP: \(BP) \nSI: \(SI) \nDI: \(DI)"
+        "Registers: \nA: \(A) \nB: \(B) \nC: \(C) \nD: \(D) \nSP: \(SP) \nBP: \(BP) \nSI: \(SI) \nDI: \(DI) \nflags: \(flags)"
+    }
+}
+
+extension Flags: CustomStringConvertible {
+    var description: String {
+        "Z: \(Z) S: \(S)"
     }
 }
 

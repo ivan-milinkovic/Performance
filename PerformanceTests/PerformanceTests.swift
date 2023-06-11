@@ -350,18 +350,12 @@ final class PerformanceTests: XCTestCase {
         reset()
         let data = loadFile("listing_0046_add_sub_cmp")
         runBinary(data)
-        let expected = Registers(A: 0, B: 57602, C: 3841, D: 0, SP: 998, BP: 0, SI: 0, DI: 0)
+        let expected = Registers(A: 0, B: 57602, C: 3841, D: 0, SP: 998, BP: 0, SI: 0, DI: 0, IP: 0,
+                                 flags: Flags(Z: true, S: false))
         XCTAssertEqual(registers, expected)
-        XCTAssertTrue(flags.Z)
-//        XCTAssertTrue(flags.P)
     }
     
     func reset() {
-        resetRegisters()
-        resetFlags()
-    }
-    
-    func resetRegisters() {
         registers.A = 0
         registers.B = 0
         registers.C = 0
@@ -370,11 +364,12 @@ final class PerformanceTests: XCTestCase {
         registers.BP = 0
         registers.SI = 0
         registers.DI = 0
-    }
-    
-    func resetFlags() {
-        flags.Z = false
-        flags.S = false
+        registers.flags.S = false
+        registers.flags.Z = false
+        registers.flags.S = false
+        registers.flags.O = false
+        registers.flags.C = false
+        registers.flags.P = false
     }
     
     func testRunBinary1() {
