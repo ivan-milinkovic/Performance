@@ -418,6 +418,14 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(registers, expected)
     }
     
+    func testRunnningListing51() {
+        reset()
+        let data = loadFile("listing_0051_memory_mov")
+        runBinary(data)
+        let expected = Registers(A: 0, B: 1, C: 2, D: 10, SP: 0, BP: 4, SI: 0, DI: 0, IP: 48, flags: Flags(Z: false, S: false))
+        XCTAssertEqual(registers, expected)
+    }
+    
     func testRun1Binary() {
         reset()
         var binary: Data

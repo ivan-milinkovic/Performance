@@ -10,13 +10,13 @@ private let inputFile =
 //"listing_0046_add_sub_cmp"
 //"listing_0048_ip_register"
 //"listing_0049_conditional_jumps"
-//"listing_0051_memory_mov"
-"test"
+"listing_0051_memory_mov"
+//"test"
 
 
 func testcpu() {
-    testDissasembly()
-//    testRunning()
+//    testDissasembly()
+    testRunning()
 }
 
 private func testDissasembly() {
@@ -445,7 +445,7 @@ private func parse(dataIterator dataIter: inout DataIterator) -> Command {
                            data1: nil)
         }
         else if simpleOpcode.isImmediateToRegMem {
-            let D = ((b & 0b0000_0010) >> 1) != 0
+            let S = ((b & 0b0000_0010) >> 1) != 0
             let W = (b & 0b0000_0001) != 0
             let (modEnum, reg, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &dataIter, W: W)
             
@@ -456,8 +456,8 @@ private func parse(dataIterator dataIter: inout DataIterator) -> Command {
             
             let (data0, data1) = readDataFields(wide: W, dataIterator: &dataIter)
             return Command(opcode: .simple(simpleOpcode),
-                           d: D,
-                           s: nil,
+                           d: nil,
+                           s: S,
                            w: W,
                            mod: modEnum,
                            reg: regEnum,
