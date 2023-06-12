@@ -344,7 +344,7 @@ final class PerformanceTests: XCTestCase {
         // mov dx, [bp]
         reset()
         registers.BP = 0
-        ram[Int(registers.BP)] = 10
+        writeMemoryWord(10, index: Int(registers.BP))
         binary = data([0b10001011, 0b01010110, 0b00000000])
         runBinary(binary)
         XCTAssertEqual(registers.D, 10)
@@ -418,14 +418,16 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(registers, expected)
     }
     
-    func testRunBinary1() {
+    func testRun1Binary() {
         reset()
         var binary: Data
         
-        // mov cx, 12
-        binary = data([0b10110001, 0b00001100])
+        // mov dx, [bp]
+        registers.BP = 0
+        writeMemoryWord(10, index: Int(registers.BP))
+        binary = data([0b10001011, 0b01010110, 0b00000000])
         runBinary(binary)
-        XCTAssertEqual(registers.C, 12)
+        XCTAssertEqual(registers.D, 10)
     }
     
     func reset() {

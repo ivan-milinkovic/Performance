@@ -58,7 +58,8 @@ func dissasemble(_ data: Data) -> String {
 //
 
 var registers = Registers()
-var ram = [UInt16].init(repeating: 0, count: 1024 * 1024 / 2) // UInt16 / 2 = 1 byte; 1024 * 1024 bytes = 1 MB
+//var ram = [UInt16].init(repeating: 0, count: 1024 * 1024 / 2) // UInt16 / 2 = 1 byte; 1024 * 1024 bytes = 1 MB
+var ram = [UInt8].init(repeating: 0, count: 65536) // 2 ^ 16 = 65536
 
 struct Registers {
     var A: UInt16 = 0
@@ -277,8 +278,13 @@ enum Location {
             return regAccess.read(regVal)
             
         case .mem(let index, let W):
-            var memValue = ram[index]
-            memValue = W ? memValue : (memValue & 0xFF00) // TODO: where to take 1 byte fom: msb or lsb? Assuming left hand side - msb
+//            var memValue = ram[index]
+//            memValue = W ? memValue : (memValue & 0xFF00)
+            var memValue = UInt16(ram[index])
+            if W {
+                memValue = (memValue << 8) | UInt16(ram[index + 1]) // big endian
+//                memValue = UInt16(ram[index + 1] << 8) | memValue
+            }
             return memValue
         }
     }
@@ -291,11 +297,33 @@ enum Location {
             registers[keyPath: regLoc] = newValue
             
         case let .mem(index, W):
-            var memValue = ram[index]
-            memValue = W ? value : ((memValue & 0x00FF) | (value & 0xFF00)) // TODO: where does 1 byte go: msb or lsb? Assuming left hand side - msb
-            ram[index] = memValue
+//            var memValue = ram[index]
+//            memValue = W ? value : ((memValue & 0x00FF) | (value & 0xFF00)) // TODO: where does 1 byte go: msb or lsb? Assuming left hand side - msb
+//            ram[index] = memValue
+            if W {
+                ram[index] = UInt8((value & 0xFF00) >> 8) // big endian
+                ram[index + 1] = UInt8(value & 0x00FF)
+            } else {
+                ram[index] = UInt8(value & 0x00FF)
+            }
         }
     }
+}
+
+func readMemoryWord(index: Int) -> UInt16 {
+    // big endian
+    let msb = ram[index]
+    let lsb = ram[index + 1]
+    let result = (UInt16(msb) << 8) | UInt16(lsb)
+    return result
+}
+
+func writeMemoryWord(_ value: UInt16, index: Int) {
+    let msb = UInt8((value & 0xFF00) >> 8)
+    let lsb = UInt8(value & 0x00FF)
+    // big endian
+    ram[index] = msb
+    ram[index + 1] = lsb
 }
 
 enum RegAccess {
