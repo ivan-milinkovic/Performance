@@ -9,13 +9,14 @@ private let inputFile =
 //"listing_0044_register_movs"
 //"listing_0046_add_sub_cmp"
 //"listing_0048_ip_register"
-"listing_0049_conditional_jumps"
-//"test"
+//"listing_0049_conditional_jumps"
+//"listing_0051_memory_mov"
+"test"
 
 
 func testcpu() {
-//    testDissasembly()
-    testRunning()
+    testDissasembly()
+//    testRunning()
 }
 
 private func testDissasembly() {
@@ -359,7 +360,7 @@ private func operationType(forOpcode opcode: Opcode) -> OperationType {
         
     case .simple(let simpleOpcode):
         switch simpleOpcode {
-        case .movRegMem: return .mov
+        case .movRegMem, .moveImmediateRegMem: return .mov
         case .addRegMem, .addImmediateToAcc: return .add
         case .subRegMem, .subImmediateToAcc: return .sub
         case .cmpRegMem, .cmpImmediateToAcc: return .cmp
@@ -442,6 +443,29 @@ private func parse(dataIterator dataIter: inout DataIterator) -> Command {
                            disp1: disp1,
                            data0: nil,
                            data1: nil)
+        }
+        else if simpleOpcode.isImmediateToRegMem {
+            let D = ((b & 0b0000_0010) >> 1) != 0
+            let W = (b & 0b0000_0001) != 0
+            let (modEnum, reg, rmEnum, disp0, disp1) = parseStandard2ndByte(iter: &dataIter, W: W)
+            
+            var regEnum : Reg? = nil
+            if !simpleOpcode.ignoresReg {
+                regEnum = resolveReg(W: W, reg: reg)
+            }
+            
+            let (data0, data1) = readDataFields(wide: W, dataIterator: &dataIter)
+            return Command(opcode: .simple(simpleOpcode),
+                           d: D,
+                           s: nil,
+                           w: W,
+                           mod: modEnum,
+                           reg: regEnum,
+                           rm: rmEnum,
+                           disp0: disp0,
+                           disp1: disp1,
+                           data0: data0,
+                           data1: data1)
         }
         else if simpleOpcode.isImmediateToAcc {
             let S = false
@@ -600,6 +624,7 @@ enum ShortOpcode: UInt8 {
 enum SimpleOpcode: UInt8 {
     
     case movRegMem = 0b100010
+    case moveImmediateRegMem = 0b110001
     
     case addRegMem = 0b000000
     case addImmediateToAcc = 0b000001
@@ -717,9 +742,9 @@ private func makeSource(cmd: Command) -> String {
             second = asmData(data0: cmd.data0!, data1: cmd.data1)
             
             // word/byte, "add byte [bx], 34", examples: "add word [bp + si + 1000], 29"
-//            if c.data1 == nil {
-//                str.append((c.w ? "word" : "byte") + " ")
-//            }
+            if case RM.eac(_, _) = rm {
+                str.append(" " + (cmd.data1 != nil ? "WORD" : "BYTE"))
+            }
         }
         
         str.append(" " + first + ", " + second)
@@ -754,14 +779,15 @@ private func asmRm(rm: RM, disp0: UInt8?, disp1: UInt8?) -> String {
         
     case .eac(_, let regs):
         str = "["
-        str += regs.map(asmString(_:)).joined(separator: " + ")
+        var individualStrs = regs.map(asmString(_:))
         
         if let disp0 {
             let dispStr = asmData(data0: disp0, data1: disp1)
             if dispStr != "0" {
-                str += " + " + dispStr
+                individualStrs.append(dispStr)
             }
         }
+        str += individualStrs.joined(separator: " + ")
         str += "]"
     }
     return str
@@ -790,7 +816,7 @@ private func asmString(_ opcode: Opcode) -> String {
         }
     case .simple(let simpleOpcode):
         switch simpleOpcode {
-        case .movRegMem: return "MOV"
+        case .movRegMem, .moveImmediateRegMem: return "MOV"
         case .addRegMem, .addImmediateToAcc: return "ADD"
         case .subRegMem, .subImmediateToAcc: return "SUB"
         case .cmpRegMem, .cmpImmediateToAcc: return "CMP"
@@ -878,17 +904,33 @@ extension SimpleOpcode {
         switch self {
         case .movRegMem, .addRegMem, .subRegMem, .cmpRegMem:
             return true
-        case .addImmediateToAcc, .subImmediateToAcc, .cmpImmediateToAcc:
+        case .moveImmediateRegMem, .addImmediateToAcc, .subImmediateToAcc, .cmpImmediateToAcc:
             return false
         }
     }
     
     var isImmediateToAcc: Bool {
         switch self {
-        case .movRegMem, .addRegMem, .subRegMem, .cmpRegMem:
+        case .movRegMem, .moveImmediateRegMem, .addRegMem, .subRegMem, .cmpRegMem:
             return false
         case .addImmediateToAcc, .subImmediateToAcc, .cmpImmediateToAcc:
             return true
+        }
+    }
+    
+    var isImmediateToRegMem: Bool {
+        switch self {
+        case .moveImmediateRegMem:
+            return true
+        case .movRegMem, .addImmediateToAcc, .subImmediateToAcc, .cmpImmediateToAcc, .addRegMem, .subRegMem, .cmpRegMem:
+            return false
+        }
+    }
+    
+    var ignoresReg: Bool {
+        switch self {
+        case .moveImmediateRegMem: return true
+        default: return false
         }
     }
 }

@@ -212,17 +212,17 @@ final class PerformanceTests: XCTestCase {
         dissasembled = dissasemble(binary)
         XCTAssertEqual(source, dissasembled.lowercased())
         
-//        reset()
-//        source = "bits 16\n\nadd byte [bx], 34\n"
-//        binary = data([0b10000000, 0b00000111, 0b00100010])
-//        dissasembled = dissasemble(binary)
-//        XCTAssertEqual(source, dissasembled.lowercased())
-//
-//        reset()
-//        source = "bits 16\n\nadd word [bp + si + 1000], 29\n"
-//        binary = data([0b10000011, 0b10000010, 0b11101000, 0b00000011, 0b00011101])
-//        dissasembled = dissasemble(binary)
-//        XCTAssertEqual(source, dissasembled.lowercased())
+        reset()
+        source = "bits 16\n\nadd byte [bx], 34\n"
+        binary = data([0b10000000, 0b00000111, 0b00100010])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
+
+        reset()
+        source = "bits 16\n\nadd word [bp + si + 1000], 29\n"
+        binary = data([0b10000011, 0b10000010, 0b11101000, 0b00000011, 0b00011101])
+        dissasembled = dissasemble(binary)
+        XCTAssertEqual(source, dissasembled.lowercased())
         
         reset()
         source = "bits 16\n\nadd ax, [bp]\n"
