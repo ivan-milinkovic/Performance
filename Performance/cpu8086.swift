@@ -10,7 +10,8 @@ private let inputFile =
 //"listing_0046_add_sub_cmp"
 //"listing_0048_ip_register"
 //"listing_0049_conditional_jumps"
-"listing_0051_memory_mov"
+//"listing_0051_memory_mov"
+"listing_0052_memory_add_loop"
 //"test"
 
 

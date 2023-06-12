@@ -426,6 +426,14 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(registers, expected)
     }
     
+    func testRunnningListing52() {
+        reset()
+        let data = loadFile("listing_0052_memory_add_loop")
+        runBinary(data)
+        let expected = Registers(A: 0, B: 6, C: 4, D: 6, SP: 0, BP: 1000, SI: 6, DI: 0, IP: 35, flags: Flags(Z: true, S: false))
+        XCTAssertEqual(registers, expected)
+    }
+    
     func testRun1Binary() {
         reset()
         var binary: Data
