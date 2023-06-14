@@ -127,7 +127,7 @@ func runCommand(_ cmd: Command, dataIter: inout DataIterator) {
 private func jump(longOpcode: LongOpcode, disp: UInt8, dataIter: inout DataIterator) {
     let disp = Int(Int8(truncatingIfNeeded: disp))
     if checkCondition(longOpcode: longOpcode) {
-        dataIter.index += disp
+        dataIter.jump(displacement: disp)
     }
 }
 
@@ -299,33 +299,13 @@ enum Location {
             registers[keyPath: regLoc] = newValue
             
         case let .mem(index, W):
-//            var memValue = ram[index]
-//            memValue = W ? value : ((memValue & 0x00FF) | (value & 0xFF00)) // TODO: where does 1 byte go: msb or lsb? Assuming left hand side - msb
-//            ram[index] = memValue
             if W {
-                ram[index] = UInt8((value & 0xFF00) >> 8) // big endian
-                ram[index + 1] = UInt8(value & 0x00FF)
+                RamAccess.writeMemoryWord(value, index: index)
             } else {
-                ram[index] = UInt8(value & 0x00FF)
+                RamAccess.writeMemoryByte(UInt8(value & 0x00FF), index: index)
             }
         }
     }
-}
-
-func readMemoryWord(index: Int) -> UInt16 {
-    // big endian
-    let msb = ram[index]
-    let lsb = ram[index + 1]
-    let result = (UInt16(msb) << 8) | UInt16(lsb)
-    return result
-}
-
-func writeMemoryWord(_ value: UInt16, index: Int) {
-    let msb = UInt8((value & 0xFF00) >> 8)
-    let lsb = UInt8(value & 0x00FF)
-    // big endian
-    ram[index] = msb
-    ram[index + 1] = lsb
 }
 
 enum RegAccess {
@@ -862,9 +842,37 @@ func writeFile(_ name: String, asm: String) {
     try! asm.write(to: outputFileUrl, atomically: false, encoding: .ascii)
 }
 
+//private func loadProgram(_ data: Data) {
+//    var i = 0
+//    while i < data.count {
+//        RamAccess.writeMemoryByte(data[i], index: i)
+//        i += 1
+//    }
+//}
+//
+//struct MemoryAccess {
+//    var dataIter: DataIterator? = nil
+//
+//    func next() -> UInt8? {
+//        if var dataIter { return dataIter.next() }
+//        return RamAccess.next()
+//    }
+//
+//    func jump(displacement: Int) {
+//        if var dataIter { dataIter.jump(displacement: displacement) }
+//        return RamAccess.jump(displacement: displacement)
+//    }
+//}
+
 struct DataIterator: IteratorProtocol {
     private let data: Data
-    var index: Int {
+    
+    mutating func jump(displacement: Int) {
+        index += displacement
+        precondition(registers.IP >= 0)
+    }
+    
+    private var index: Int {
         get {
             registers.IP
         }
@@ -885,6 +893,52 @@ struct DataIterator: IteratorProtocol {
     
     var hasMore: Bool {
         (0 <= index) && (index < data.count - 1)
+    }
+}
+
+struct RamAccess {
+    
+    static func next() -> UInt8? {
+        if (registers.IP >= ram.count) { return nil }
+        let byte = ram[registers.IP]
+        registers.IP += 1
+        return byte
+    }
+    
+    static func jump(displacement: Int) {
+        registers.IP += displacement
+        precondition(registers.IP >= 0)
+    }
+    
+    static func readMemoryByte(index: Int) -> UInt8 {
+        ram[index]
+    }
+    
+    static func readMemoryWord(index: Int) -> UInt16 {
+        // big endian
+        let msb = ram[index]
+        let lsb = ram[index + 1]
+        // little-endian
+//        let lsb = ram[index]
+//        let msb = ram[index + 1]
+        let result = (UInt16(msb) << 8) | UInt16(lsb)
+        return result
+    }
+
+    static func writeMemoryByte(_ byte: UInt8, index: Int) {
+        ram[index] = byte
+    }
+    
+    static func writeMemoryWord(_ value: UInt16, index: Int) {
+        let msb = UInt8((value & 0xFF00) >> 8)
+        let lsb = UInt8(value & 0x00FF)
+        // big endian
+        ram[index] = msb
+        ram[index + 1] = lsb
+        
+        // little-endian
+//        ram[index] = lsb
+//        ram[index + 1] = msb
     }
 }
 

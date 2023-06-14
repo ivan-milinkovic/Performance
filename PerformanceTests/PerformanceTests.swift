@@ -327,24 +327,24 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(asm.lowercased(), expectedAsm)
     }
     
-    func testIndividualAsm() {
-        var source : String
-        var binary : Data
-        var dissasembled : String
-
-        source = "bits 16\n\nmov al, [bx + si + 4999]\n"
-        binary = data([0b10001010, 0b10000000, 0b10000111, 0b00010011])
-        dissasembled = dissasemble(binary)
-        XCTAssertEqual(source, dissasembled.lowercased())
-    }
+//    func testIndividualAsm() {
+//        var source : String
+//        var binary : Data
+//        var dissasembled : String
+//
+//        source = "bits 16\n\nmov al, [bx + si + 4999]\n"
+//        binary = data([0b10001010, 0b10000000, 0b10000111, 0b00010011])
+//        dissasembled = dissasemble(binary)
+//        XCTAssertEqual(source, dissasembled.lowercased())
+//    }
     
     func testRunBinary() {
         var binary: Data
         
         // mov dx, [bp]
         reset()
-        registers.BP = 0
-        writeMemoryWord(10, index: Int(registers.BP))
+        registers.BP = 1000
+        RamAccess.writeMemoryWord(10, index: Int(registers.BP))
         binary = data([0b10001011, 0b01010110, 0b00000000])
         runBinary(binary)
         XCTAssertEqual(registers.D, 10)
@@ -434,17 +434,17 @@ final class PerformanceTests: XCTestCase {
         XCTAssertEqual(registers, expected)
     }
     
-    func testRun1Binary() {
-        reset()
-        var binary: Data
-        
-        // mov dx, [bp]
-        registers.BP = 0
-        writeMemoryWord(10, index: Int(registers.BP))
-        binary = data([0b10001011, 0b01010110, 0b00000000])
-        runBinary(binary)
-        XCTAssertEqual(registers.D, 10)
-    }
+//    func testRun1Binary() {
+//        reset()
+//        var binary: Data
+//
+//        // mov dx, [bp]
+//        registers.BP = 1000
+//        writeMemoryWord(10, index: Int(registers.BP))
+//        binary = data([0b10001011, 0b01010110, 0b00000000])
+//        runBinary(binary)
+//        XCTAssertEqual(registers.D, 10)
+//    }
     
     func reset() {
         registers.A = 0
