@@ -10,7 +10,7 @@ import Foundation
 //testAdd()
 //testHaversine()
 //testCleanCode()
-
-testcpu()
+//testcpu()
+testJsonParser()
 
 exit(0)
