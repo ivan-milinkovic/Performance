@@ -11,7 +11,8 @@
 		2C6EEACC2A2B9C5500EF3BDA /* add.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6EEACB2A2B9C5500EF3BDA /* add.swift */; };
 		2C6EEACE2A2B9CBB00EF3BDA /* util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6EEACD2A2B9CBB00EF3BDA /* util.swift */; };
 		2C6EEAD02A2BA15C00EF3BDA /* haversine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6EEACF2A2BA15C00EF3BDA /* haversine.swift */; };
-		2C880CEF2A3B7450006CFE4B /* JsonParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CEE2A3B7450006CFE4B /* JsonParser.swift */; };
+		2C880CF22A3C4046006CFE4B /* CollectionMembershipTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CF12A3C4046006CFE4B /* CollectionMembershipTest.swift */; };
+		2C880CF32A3C42D2006CFE4B /* JsonParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CF02A3C3D32006CFE4B /* JsonParser.swift */; };
 		2CBE79992A2BB6240016B8C9 /* cleancode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBE79982A2BB6240016B8C9 /* cleancode.swift */; };
 		2CBE799B2A2C684D0016B8C9 /* cpu8086.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBE799A2A2C684D0016B8C9 /* cpu8086.swift */; };
 		2CBE79BE2A3060440016B8C9 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBE79BD2A3060440016B8C9 /* PerformanceTests.swift */; };
@@ -40,7 +41,9 @@
 		2C6EEACB2A2B9C5500EF3BDA /* add.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = add.swift; sourceTree = "<group>"; };
 		2C6EEACD2A2B9CBB00EF3BDA /* util.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = util.swift; sourceTree = "<group>"; };
 		2C6EEACF2A2BA15C00EF3BDA /* haversine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = haversine.swift; sourceTree = "<group>"; };
-		2C880CEE2A3B7450006CFE4B /* JsonParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParser.swift; sourceTree = "<group>"; };
+		2C880CEE2A3B7450006CFE4B /* JsonParser0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParser0.swift; sourceTree = "<group>"; };
+		2C880CF02A3C3D32006CFE4B /* JsonParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParser.swift; sourceTree = "<group>"; };
+		2C880CF12A3C4046006CFE4B /* CollectionMembershipTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionMembershipTest.swift; sourceTree = "<group>"; };
 		2CBE79982A2BB6240016B8C9 /* cleancode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cleancode.swift; sourceTree = "<group>"; };
 		2CBE799A2A2C684D0016B8C9 /* cpu8086.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cpu8086.swift; sourceTree = "<group>"; };
 		2CBE79BB2A3060440016B8C9 /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -93,9 +96,11 @@
 				2CBE79982A2BB6240016B8C9 /* cleancode.swift */,
 				2C6EEACB2A2B9C5500EF3BDA /* add.swift */,
 				2C6EEACF2A2BA15C00EF3BDA /* haversine.swift */,
-				2C6EEACD2A2B9CBB00EF3BDA /* util.swift */,
-				2C880CEE2A3B7450006CFE4B /* JsonParser.swift */,
+				2C880CEE2A3B7450006CFE4B /* JsonParser0.swift */,
+				2C880CF02A3C3D32006CFE4B /* JsonParser.swift */,
+				2C880CF12A3C4046006CFE4B /* CollectionMembershipTest.swift */,
 				2CBE79C52A3063180016B8C9 /* globals.swift */,
+				2C6EEACD2A2B9CBB00EF3BDA /* util.swift */,
 			);
 			path = Performance;
 			sourceTree = "<group>";
@@ -199,12 +204,13 @@
 			files = (
 				2CBE79992A2BB6240016B8C9 /* cleancode.swift in Sources */,
 				2C6EEAC52A2A83F200EF3BDA /* main.swift in Sources */,
-				2C880CEF2A3B7450006CFE4B /* JsonParser.swift in Sources */,
 				2CBE799B2A2C684D0016B8C9 /* cpu8086.swift in Sources */,
 				2C6EEACE2A2B9CBB00EF3BDA /* util.swift in Sources */,
 				2C6EEACC2A2B9C5500EF3BDA /* add.swift in Sources */,
 				2CBE79C62A3063180016B8C9 /* globals.swift in Sources */,
 				2C6EEAD02A2BA15C00EF3BDA /* haversine.swift in Sources */,
+				2C880CF22A3C4046006CFE4B /* CollectionMembershipTest.swift in Sources */,
+				2C880CF32A3C42D2006CFE4B /* JsonParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

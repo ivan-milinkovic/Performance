@@ -11,6 +11,7 @@ import Foundation
 //testHaversine()
 //testCleanCode()
 //testcpu()
+//testCollectionMembership()
 testJsonParser()
 
 exit(0)

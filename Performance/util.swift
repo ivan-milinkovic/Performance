@@ -85,3 +85,23 @@ extension Data {
         return str
     }
 }
+
+class Stack<T> {
+    private var contents = [T]()
+    
+    func push(_ val: T) {
+        contents.append(val)
+    }
+    
+    func pop() -> T {
+        contents.removeLast()
+    }
+    
+    func top() -> T? {
+        contents.last
+    }
+    
+    var count: Int {
+        contents.count
+    }
+}
