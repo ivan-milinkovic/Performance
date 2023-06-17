@@ -17,13 +17,18 @@ func testJsonParser() {
 final class JsonParser {
     
     func parse(jsonString str: String) -> Any {
+        
         let tokenizer = JsonTokenizer()
         let tokens = tokenizer.tokenize(jsonString: str)
-//        print(tokens.map(\.value).joined(separator: " "))
+        print("Step 1 Tokens:", tokens.map(\.value).joined(separator: " "))
+        
         let ltokens = LiteralParser.parse(tokens)
-//        print(ltokens.map(\.description).joined(separator: " "))
+        print("Step 2 Values:", ltokens.map(\.description).joined(separator: " "))
+        
         let collectionParser = CollectionParser()
         let result = collectionParser.parse(ltokens)
+        print("Step 3 Semantic:", result)
+        
         return result
     }
 }
@@ -43,6 +48,17 @@ private final class JsonTokenizer {
     var currentToken = ""
     var isInsideString = false // don't tokenize special chars inside a string, keep whitespaces, check for escapes
     var isEscape = false
+    
+    init() {
+        reset()
+    }
+    
+    private func reset() {
+        tokens = [Token]()
+        currentToken = ""
+        isInsideString = false
+        isEscape = false
+    }
     
     func tokenize(jsonString str: String) -> [Token] {
         
@@ -84,8 +100,11 @@ private final class JsonTokenizer {
             
             currentToken.append(String(char))
         }
+        
         finalizeCurrentToken()
-        return tokens
+        let result = tokens
+        reset()
+        return result
     }
     
     private func finalizeCurrentToken() {
@@ -222,12 +241,21 @@ private class CollectionParser {
     private var stack = Stack<JsonCollection>()
     private var result: Any = NSNull()
     
+    init() {
+        reset()
+    }
+    
+    private func reset() {
+        stack = Stack<JsonCollection>()
+        result = NSNull()
+    }
+    
     func parse(_ itokens: [LiteralToken]) -> Any {
         
         if itokens.count == 0 { return NSNull() }
         
         if itokens.count == 1, case .literalValue(let literalValue) = itokens.first! {
-            return literalValue
+            return literalValue.value
         }
         
         for itoken in itokens {
@@ -265,19 +293,25 @@ private class CollectionParser {
                 guard let current = stack.top() else {
                     fatalError("Invalid json, no collection, but got: \(literalValue.value)")
                 }
-                current.merge(literalValue)
+                current.merge(literalValue.value)
             }
         }
         
-        return result
+        let resultCopy = result
+        reset()
+        return resultCopy
     }
     
     private func popStack() {
-        let finishedCollection = stack.pop()
+        let current = stack.pop()
         if let parent = stack.top() {
-            parent.merge(finishedCollection)
+            parent.merge(current.value)
         } else {
-            result = finishedCollection.value
+            if case .map(let map) = current, map.isComplete == false {
+                fatalError("Invalid json, a map is incomplete")
+            } else {
+                result = current.value
+            }
         }
     }
 }
@@ -289,22 +323,12 @@ private enum JsonCollection {
     
     var value: Any {
         switch self {
-        case .map(let jsonMap): return jsonMap
-        case .array(let jsonArray): return jsonArray
+        case .map(let jsonMap): return jsonMap.value
+        case .array(let jsonArray): return jsonArray.value
         }
     }
     
-    func merge(_ col: JsonCollection) {
-        switch self {
-        case .map(let map):
-            map.consume(col.value)
-            
-        case .array(let jsonArray):
-            jsonArray.value.append(col.value)
-        }
-    }
-    
-    func merge(_ val: LiteralValue) {
+    func merge(_ val: Any) {
         switch self {
         case .map(let map):
             map.consume(val)

@@ -13,6 +13,8 @@
 		2C6EEAD02A2BA15C00EF3BDA /* haversine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6EEACF2A2BA15C00EF3BDA /* haversine.swift */; };
 		2C880CF22A3C4046006CFE4B /* CollectionMembershipTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CF12A3C4046006CFE4B /* CollectionMembershipTest.swift */; };
 		2C880CF32A3C42D2006CFE4B /* JsonParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CF02A3C3D32006CFE4B /* JsonParser.swift */; };
+		2C880CF62A3DBA79006CFE4B /* JsonParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CF52A3DBA79006CFE4B /* JsonParserTests.swift */; };
+		2C880CF72A3DBAA8006CFE4B /* JsonParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CF02A3C3D32006CFE4B /* JsonParser.swift */; };
 		2CBE79992A2BB6240016B8C9 /* cleancode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBE79982A2BB6240016B8C9 /* cleancode.swift */; };
 		2CBE799B2A2C684D0016B8C9 /* cpu8086.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBE799A2A2C684D0016B8C9 /* cpu8086.swift */; };
 		2CBE79BE2A3060440016B8C9 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBE79BD2A3060440016B8C9 /* PerformanceTests.swift */; };
@@ -44,6 +46,7 @@
 		2C880CEE2A3B7450006CFE4B /* JsonParser0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParser0.swift; sourceTree = "<group>"; };
 		2C880CF02A3C3D32006CFE4B /* JsonParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParser.swift; sourceTree = "<group>"; };
 		2C880CF12A3C4046006CFE4B /* CollectionMembershipTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionMembershipTest.swift; sourceTree = "<group>"; };
+		2C880CF52A3DBA79006CFE4B /* JsonParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserTests.swift; sourceTree = "<group>"; };
 		2CBE79982A2BB6240016B8C9 /* cleancode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cleancode.swift; sourceTree = "<group>"; };
 		2CBE799A2A2C684D0016B8C9 /* cpu8086.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cpu8086.swift; sourceTree = "<group>"; };
 		2CBE79BB2A3060440016B8C9 /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -109,6 +112,7 @@
 			isa = PBXGroup;
 			children = (
 				2CBE79BD2A3060440016B8C9 /* PerformanceTests.swift */,
+				2C880CF52A3DBA79006CFE4B /* JsonParserTests.swift */,
 			);
 			path = PerformanceTests;
 			sourceTree = "<group>";
@@ -220,8 +224,10 @@
 			files = (
 				2CBE79C72A3063330016B8C9 /* globals.swift in Sources */,
 				2CBE79C32A3062CE0016B8C9 /* util.swift in Sources */,
+				2C880CF72A3DBAA8006CFE4B /* JsonParser.swift in Sources */,
 				2CBE79C22A3062BD0016B8C9 /* cpu8086.swift in Sources */,
 				2CBE79BE2A3060440016B8C9 /* PerformanceTests.swift in Sources */,
+				2C880CF62A3DBA79006CFE4B /* JsonParserTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
