@@ -122,7 +122,7 @@ private struct TokenChar {
     
     static let stringDelimiter : Character = "\""
     static let stringEscape : Character = "\\"
-    static let whitespace : [Character] = [" ", "\n", "\r"]
+    static let whitespace : [Character] = [" ", "\n", "\r", "\t"]
     
     static let mapOpen : Character = "{"
     static let mapClose : Character = "}"
