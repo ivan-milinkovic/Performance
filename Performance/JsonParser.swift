@@ -20,8 +20,11 @@ final class JsonParser {
         let tokenizer = JsonTokenizer()
         let tokens = tokenizer.tokenize(jsonString: str)
 //        print(tokens.map(\.value).joined(separator: " "))
-        let itokens = IntermediateParser.parse(tokens)
-        return itokens.map(\.description).joined(separator: " ")
+        let ltokens = LiteralParser.parse(tokens)
+//        print(ltokens.map(\.description).joined(separator: " "))
+        let collectionParser = CollectionParser()
+        let result = collectionParser.parse(ltokens)
+        return result
     }
 }
 
@@ -118,11 +121,11 @@ private struct TokenChar {
     }
 }
 
-private class IntermediateParser {
+private class LiteralParser {
 
-    static func parse(_ tokens: [Token]) -> [IntermediateToken] {
+    static func parse(_ tokens: [Token]) -> [LiteralToken] {
         
-        var itokens = [IntermediateToken]()
+        var itokens = [LiteralToken]()
         for token in tokens {
             if token.value.count == 1 {
                 let char = Array(token.value)[0]
@@ -160,7 +163,7 @@ private class IntermediateParser {
     }
 }
 
-private enum IntermediateToken {
+private enum LiteralToken {
     case mapOpen
     case mapClose
     
@@ -178,6 +181,15 @@ private enum LiteralValue {
     case number (Double)
     case bool   (Bool)
     case null   (NSNull)
+    
+    var value: Any {
+        switch self {
+        case .string(let string): return string
+        case .number(let double): return double
+        case .bool(let bool):     return bool
+        case .null(let nsull):    return nsull
+        }
+    }
 }
 
 extension LiteralValue: CustomStringConvertible {
@@ -191,7 +203,7 @@ extension LiteralValue: CustomStringConvertible {
     }
 }
 
-extension IntermediateToken: CustomStringConvertible {
+extension LiteralToken: CustomStringConvertible {
     var description: String {
         switch self {
         case .mapOpen:           return String(TokenChar.mapOpen)
@@ -207,49 +219,135 @@ extension IntermediateToken: CustomStringConvertible {
 
 private class CollectionParser {
     
-    var current: JsonCollection? = nil
+    private var stack = Stack<JsonCollection>()
+    private var result: Any = NSNull()
     
-    func parse(_ itokens: [IntermediateToken]) -> Any {
+    func parse(_ itokens: [LiteralToken]) -> Any {
         
         if itokens.count == 0 { return NSNull() }
         
-        if itokens.count == 1,
-           case .literalValue(let literalValue) = itokens.first! {
+        if itokens.count == 1, case .literalValue(let literalValue) = itokens.first! {
             return literalValue
-        } else {
-            fatalError("Invalid json")
         }
         
         for itoken in itokens {
             switch itoken {
             case .mapOpen:
-                break
+                stack.push(.map(JsonMap()))
+                
             case .mapClose:
-                break
+                popStack()
+                
             case .arrayOpen:
-                break
+                stack.push(.array(JsonArray()))
+                
             case .arrayClose:
-                break
+                popStack()
+                
             case .keyValueDelimiter:
-                break
+                guard let current = stack.top(),
+                      case .map(let map) = current,
+                      map.key != nil // since we're at key-value delimiter, the key must be already set
+                else {
+                    fatalError("Invalid json, got the key-value separator '\(TokenChar.keyValueDelimiter)' without a key being set previously")
+                }
+            
             case .elementDelimiter:
-                break
+                guard let current = stack.top() else {
+                    fatalError("Invalid json, no collection")
+                }
+                if case .map(let map) = current, map.isComplete == false {
+                    fatalError("Invalid json, got the element delimiter '\(TokenChar.elementDelimiter)',"
+                               + "while the map is incomplete: key: \(String(describing: map.key))")
+                }
+                
             case .literalValue(let literalValue):
-                break
+                guard let current = stack.top() else {
+                    fatalError("Invalid json, no collection, but got: \(literalValue.value)")
+                }
+                current.merge(literalValue)
             }
+        }
+        
+        return result
+    }
+    
+    private func popStack() {
+        let finishedCollection = stack.pop()
+        if let parent = stack.top() {
+            parent.merge(finishedCollection)
+        } else {
+            result = finishedCollection.value
         }
     }
 }
 
 private enum JsonCollection {
+    
     case map(JsonMap)
     case array(JsonArray)
+    
+    var value: Any {
+        switch self {
+        case .map(let jsonMap): return jsonMap
+        case .array(let jsonArray): return jsonArray
+        }
+    }
+    
+    func merge(_ col: JsonCollection) {
+        switch self {
+        case .map(let map):
+            map.consume(col.value)
+            
+        case .array(let jsonArray):
+            jsonArray.value.append(col.value)
+        }
+    }
+    
+    func merge(_ val: LiteralValue) {
+        switch self {
+        case .map(let map):
+            map.consume(val)
+            
+        case .array(let jsonArray):
+            jsonArray.value.append(val)
+        }
+    }
 }
 
 private class JsonMap {
     var value = [String: Any]()
     var key: String?
-    var val: Any?
+    
+    var isComplete: Bool {
+        key == nil
+    }
+    
+    func consume(_ val: Any) {
+        if key == nil {
+            guard let str = val as? String else {
+                fatalError("Invalid json, expected a key (a string), but got a \(type(of: val))")
+            }
+            key = str
+        }
+        else {
+            value[key!] = val
+            key = nil
+        }
+    }
+    
+    func consume(_ val: LiteralValue) {
+        if key == nil {
+            guard case .string(let str) = val else {
+                fatalError("Invalid json, expected a key (a string), but got a \(val.value)")
+            }
+            key = str
+        }
+        else {
+            value[key!] = val
+            key = nil
+        }
+    }
 }
 
 private class JsonArray {
