@@ -8,10 +8,11 @@
 import Foundation
 
 //testAdd()
-//testHaversine()
 //testCleanCode()
 //testcpu()
 //testCollectionMembership()
-testJsonParser()
+//testJsonParser()
+//testHaversine()
+testIterSpeed()
 
 exit(0)
