@@ -1,44 +1,65 @@
 import Foundation
 
-func testJsonParser() {
-    let jsonFile = "testJson.json"
+func testJsonParserAscii() {
+    let jsonFile = "coords_1_000_000.json"
     let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
-    let jsonString = try! String.init(contentsOf: inputFileUrl)
-    print("input:", jsonString)
-    let jsonParser = JsonParser()
-    jsonParser.log = true
-    let jsonStructure = jsonParser.parse(jsonString: jsonString)
-    print("\noutput:", jsonStructure, "\n")
+    
+    do {
+        let t0 = mach_absolute_time()
+        let data = try! Data(contentsOf: inputFileUrl)
+        let jsonParser = JsonParserAscii()
+        jsonParser.log = false
+        let jsonStructure = jsonParser.parse(data: data)
+        let t1 = mach_absolute_time() - t0
+        ////    print("\noutput:", jsonStructure, "\n")
+        print(t1)
+    }
+    
+    do {
+        let t0 = mach_absolute_time()
+        let data = try! Data.init(contentsOf: inputFileUrl)
+        let _ = try! JSONSerialization.jsonObject(with: data)
+        let t1 = mach_absolute_time() - t0
+        print(t1)
+    }
+    
+    do {
+        let t0 = mach_absolute_time()
+        let data = try! Data.init(contentsOf: inputFileUrl)
+        let _ = try! JSONDecoder().decode([[String:Double]].self, from: data)
+        let t1 = mach_absolute_time() - t0
+        print(t1)
+    }
 }
 
-final class JsonParser {
+final class JsonParserAscii {
     
     var log = false
     
-    func parse(jsonString str: String) -> Any {
+    func parse(data: Data) -> Any {
         
-        let t0 = mach_absolute_time()
+//        let t0 = mach_absolute_time()
         
         let tokenizer = JsonTokenizer()
-        let tokens = tokenizer.tokenize(jsonString: str)
-        if log { print("Step 1 Tokens:", tokens.map(\.value).joined(separator: " ")) }
+        let tokens = tokenizer.tokenize(data)
+//        if log { print("Step 1 Tokens:", tokens.map(\.value).joined(separator: " ")) }
         
-        let t1 = mach_absolute_time()
+//        let t1 = mach_absolute_time()
         
         let ltokens = LiteralParser.parse(tokens)
-        if log { print("Step 2 Values:", ltokens.map(\.description).joined(separator: " ")) }
+//        if log { print("Step 2 Values:", ltokens.map(\.description).joined(separator: " ")) }
         
-        let t2 = mach_absolute_time()
+//        let t2 = mach_absolute_time()
         
         let collectionParser = CollectionParser()
         let result = collectionParser.parse(ltokens)
-        if log { print("Step 3 Semantic:", result) }
+//        if log { print("Step 3 Semantic:", result) }
         
-        let t3 = mach_absolute_time()
-        let ttotal = Double(t3 - t0)
-        print("tokenizer:\t", String(format: "%.2f", Double(t1 - t0) / ttotal * 100.0), "%")
-        print("values:\t\t", String(format: "%.2f", Double(t2 - t1) / ttotal * 100.0), "%")
-        print("collections:", String(format: "%.2f", Double(t3 - t2) / ttotal * 100.0), "%")
+//        let t3 = mach_absolute_time()
+//        let ttotal = Double(t3 - t0)
+//        print("tokenizer:\t", String(format: "%.2f", Double(t1 - t0) / ttotal * 100.0), "%")
+//        print("values:\t\t", String(format: "%.2f", Double(t2 - t1) / ttotal * 100.0), "%")
+//        print("collections:", String(format: "%.2f", Double(t3 - t2) / ttotal * 100.0), "%")
         
         return result
     }
@@ -71,17 +92,11 @@ private final class JsonTokenizer {
         isEscape = false
     }
     
-    func tokenize(jsonString str: String) -> [Token] {
+    func tokenize(_ data: Data) -> [Token] {
         
-        var strIter = str.makeIterator()
-        while let char = strIter.next() {
-        
-//        let chars = ArraySlice(str)
-//        var i = 0
-//        let cnt = chars.count
-//        while i < cnt {
-//            let char = chars[i]
-//            i += 1
+        var dataIter = data.makeIterator()
+        while let byte = dataIter.next() {
+            let char = Character.init(Unicode.Scalar.init(byte))
             
             if isInsideString {
                 if char == TokenChar.stringEscape {
@@ -140,7 +155,7 @@ private struct TokenChar {
     
     static let stringDelimiter : Character = "\""
     static let stringEscape : Character = "\\"
-    static let whitespace : [Character] = [" ", "\n", "\r", "\t"]
+//    static let whitespace : [Character] = [" ", "\n", "\r", "\t"]
     
     static let mapOpen : Character = "{"
     static let mapClose : Character = "}"
@@ -154,7 +169,7 @@ private struct TokenChar {
     static let `false` = "false"
     
     static func isWhitespace(_ char: Character) -> Bool {
-        whitespace.contains(char)
+        char == " " || char == "\n" || char == "\r" || char == "\t"
     }
 }
 

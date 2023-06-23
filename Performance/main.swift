@@ -11,8 +11,10 @@ import Foundation
 //testCleanCode()
 //testcpu()
 //testCollectionMembership()
-//testJsonParser()
+//testJsonParserUnicode()
+testJsonParserAscii()
 //testHaversine()
-testIterSpeed()
+//testIterSpeed()
+//testSwiftSpeed()
 
 exit(0)

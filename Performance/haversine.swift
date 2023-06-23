@@ -43,7 +43,7 @@ func testHaversine() {
 //    var jsonStr = String(data: try! Data.init(contentsOf: fileUrl), encoding: .utf8)!
     var jsonStr = try! String(contentsOf: fileUrl)
     jsonStr.makeContiguousUTF8()
-    let coords = JsonParser().parse(jsonString: jsonStr) as! [[String: Double]]
+    let coords = JsonParserUnicode().parse(jsonString: jsonStr) as! [[String: Double]]
     
     let midtime = Date()
     let midTicks = mach_absolute_time()

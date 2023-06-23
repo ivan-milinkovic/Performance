@@ -13,6 +13,7 @@ func testIterSpeed() {
     print(measureTicks(epochs: N, task: strIter(_:_:)))
     print(measureTicks(epochs: N, task: makingCharArray(_:_:)))
     print(measureTicks(epochs: N, task: dataIter(_:_:)))
+    print(measureTicks(epochs: N, task: dataArray(_:_:)))
 }
 
 private func measureTicks(epochs: Int, task: (Data, String) -> Void) -> Int {
@@ -73,5 +74,13 @@ private func dataIter(_ data: Data, _ str: String) {
     var diter = data.makeIterator()
     while let c = diter.next() {
         let _ = c
+    }
+}
+
+private func dataArray(_ data: Data, _ str: String) {
+    var i = 0
+    while i < data.count {
+        let _ = data[i]
+        i += 1
     }
 }

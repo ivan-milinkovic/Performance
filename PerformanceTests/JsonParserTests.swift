@@ -9,10 +9,10 @@ import XCTest
 
 final class JsonParserTests: XCTestCase {
     
-    var jsonParser : JsonParser!
+    var jsonParser : JsonParserUnicode!
     
     override func setUp() async throws {
-        jsonParser = JsonParser()
+        jsonParser = JsonParserUnicode()
     }
     
     override func tearDown() async throws {
