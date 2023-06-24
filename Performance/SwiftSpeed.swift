@@ -12,16 +12,16 @@ func testSwiftSpeed() {
     
     do {
         let ticks = measureTicks(epochs: N) {
-            let e = Enum1.three
-            let e2 = e
+            let e = Enum1.one
+            let _ = e
         }
         print(ticks)
     }
     
     do {
         let ticks = measureTicks(epochs: N) {
-            let e = Enum2.three(123)
-            let e2 = e
+            let e = Enum2.one(123)
+            var _ = e
         }
         print(ticks)
     }

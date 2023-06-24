@@ -1,15 +1,15 @@
 import Foundation
 
-final class JsonParserUnicode {
+final class JsonParserCChar {
     
     var log = false
     
-    func parse(jsonString str: String) -> Any {
+    func parse(data: Data) -> Any {
         
 //        let t0 = mach_absolute_time()
         
         let tokenizer = JsonTokenizer()
-        let tokens = tokenizer.tokenize(jsonString: str)
+        let tokens = tokenizer.tokenize(data)
 //        if log { print("Step 1 Tokens:", tokens.map(\.value).joined(separator: " ")) }
         
 //        let t1 = mach_absolute_time()
@@ -34,9 +34,9 @@ final class JsonParserUnicode {
 }
 
 private struct Token {
-    let value: String
+    let value: [CUChar]
     let isString: Bool
-    init(value: String, isString: Bool = false) {
+    init(value: [CUChar], isString: Bool = false) {
         self.value = value
         self.isString = isString
     }
@@ -45,7 +45,7 @@ private struct Token {
 private final class JsonTokenizer {
     
     var tokens = [Token]()
-    var currentToken = ""
+    var currentToken = [CUChar]()
     var isInsideString = false // don't tokenize special chars inside a string, keep whitespaces, check for escapes
     var isEscape = false
     
@@ -55,22 +55,15 @@ private final class JsonTokenizer {
     
     private func reset() {
         tokens = [Token]()
-        currentToken = ""
+        currentToken = [CUChar]()
         isInsideString = false
         isEscape = false
     }
     
-    func tokenize(jsonString str: String) -> [Token] {
+    func tokenize(_ data: Data) -> [Token] {
         
-        var strIter = str.makeIterator()
-        while let char = strIter.next() {
-        
-//        let chars = ArraySlice(str)
-//        var i = 0
-//        let cnt = chars.count
-//        while i < cnt {
-//            let char = chars[i]
-//            i += 1
+        var dataIter = data.makeIterator()
+        while let char = dataIter.next() {
             
             if isInsideString {
                 if char == TokenChar.stringEscape {
@@ -99,13 +92,13 @@ private final class JsonTokenizer {
                 continue
             }
             
-            if TokenChar.delimiters.contains(char) {
+            if TokenChar.isDelimiter(char) {
                 finalizeCurrentToken()
-                tokens.append(Token(value: String(char))) // store the new delimiter token
+                tokens.append(Token(value: [char])) // store the new delimiter token
                 continue
             }
             
-            currentToken.append(String(char))
+            currentToken.append(char)
         }
         
         finalizeCurrentToken()
@@ -116,34 +109,47 @@ private final class JsonTokenizer {
     
     private func finalizeCurrentToken() {
         if !currentToken.isEmpty {
+            currentToken.append(0)
             tokens.append(Token(value: currentToken, isString: isInsideString))
         }
-        currentToken = ""
+        currentToken = .init()
         isInsideString = false
     }
 }
 
+typealias CUChar = CUnsignedChar
+
 private struct TokenChar {
     
-    static let delimiters : [Character] = [mapOpen, mapClose, arrayOpen, arrayClose, keyValueDelimiter, elementDelimiter]
+//    static let delimiters : [Character] = [mapOpen, mapClose, arrayOpen, arrayClose, keyValueDelimiter, elementDelimiter]
     
-    static let stringDelimiter : Character = "\""
-    static let stringEscape : Character = "\\"
-//    static let whitespace : [Character] = [" ", "\n", "\r", "\t"]
+    static let space = CUChar(32) // " "
+    static let newline = CUChar(10) // "\n" line feed
+    static let carriage = CUChar(13) // "\r"
+    static let tab = CUChar(9) // "\t"
     
-    static let mapOpen : Character = "{"
-    static let mapClose : Character = "}"
-    static let arrayOpen : Character = "["
-    static let arrayClose : Character = "]"
-    static let keyValueDelimiter : Character = ":"
-    static let elementDelimiter : Character = ","
+    static let stringDelimiter = CUChar(34) // "\""
+    static let stringEscape = CUChar(92) // "\\"
+    
+    static let mapOpen = CUChar(123) // "{"
+    static let mapClose = CUChar(125) // "}"
+    static let arrayOpen = CUChar(91) // "["
+    static let arrayClose = CUChar(93) // "]"
+    static let keyValueDelimiter = CUChar(58) // ":"
+    static let elementDelimiter = CUChar(44) // ","
     
     static let null = "null"
     static let `true` = "true"
     static let `false` = "false"
     
-    static func isWhitespace(_ char: Character) -> Bool {
-        char == " " || char == "\n" || char == "\r" || char == "\t"
+    static func isWhitespace(_ char: CUChar) -> Bool {
+        char == space || char == newline || char == carriage || char == tab
+    }
+    
+    static func isDelimiter(_ char: CUChar) -> Bool {
+        char == mapOpen || char == mapClose
+        || char == arrayOpen || char == arrayClose
+        || char == keyValueDelimiter || char == elementDelimiter
     }
 }
 
@@ -153,6 +159,7 @@ private class LiteralParser {
         
         var itokens = [LiteralToken]()
         for token in tokens {
+            
             if token.value.count == 1 {
                 let char = Array(token.value)[0]
                 switch char {
@@ -164,21 +171,25 @@ private class LiteralParser {
                 case TokenChar.elementDelimiter:    itokens.append(.elementDelimiter)
                 default: fatalError("Uknown character: \(char)")
                 }
-            }
-            else if token.isString {
-                itokens.append(.literalValue(.string(token.value)))
                 continue
             }
-            else if token.value.lowercased() == TokenChar.null {
+            
+            let str = String(cString: token.value)
+            
+            if token.isString {
+                itokens.append(.literalValue(.string(str)))
+                continue
+            }
+            else if str.lowercased() == TokenChar.null {
                 itokens.append(.literalValue(.null(NSNull())))
             }
-            else if token.value.lowercased() == TokenChar.true {
+            else if str.lowercased() == TokenChar.true {
                 itokens.append(.literalValue(.bool(true)))
             }
-            else if token.value.lowercased() == TokenChar.false {
+            else if str.lowercased() == TokenChar.false {
                 itokens.append(.literalValue(.bool(false)))
             }
-            else if let number = Double(token.value) {
+            else if let number = Double(str) {
                 itokens.append(.literalValue(.number(number)))
             }
             else {

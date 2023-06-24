@@ -1,37 +1,5 @@
 import Foundation
 
-func testJsonParserAscii() {
-    let jsonFile = "coords_1_000_000.json"
-    let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
-    
-    do {
-        let t0 = mach_absolute_time()
-        let data = try! Data(contentsOf: inputFileUrl)
-        let jsonParser = JsonParserAscii()
-        jsonParser.log = false
-        let jsonStructure = jsonParser.parse(data: data)
-        let t1 = mach_absolute_time() - t0
-        ////    print("\noutput:", jsonStructure, "\n")
-        print(t1)
-    }
-    
-    do {
-        let t0 = mach_absolute_time()
-        let data = try! Data.init(contentsOf: inputFileUrl)
-        let _ = try! JSONSerialization.jsonObject(with: data)
-        let t1 = mach_absolute_time() - t0
-        print(t1)
-    }
-    
-    do {
-        let t0 = mach_absolute_time()
-        let data = try! Data.init(contentsOf: inputFileUrl)
-        let _ = try! JSONDecoder().decode([[String:Double]].self, from: data)
-        let t1 = mach_absolute_time() - t0
-        print(t1)
-    }
-}
-
 final class JsonParserAscii {
     
     var log = false
