@@ -9,6 +9,7 @@ import Foundation
 
 func testJsonParser() {
     
+//    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
     let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
     
@@ -41,6 +42,9 @@ func testJsonParser() {
         let _ = jsonParser.parse(data: data)
         let t1 = mach_absolute_time() - t0
         print(String(format: "%8d", t1))
+        // 1104004 - release
+        //  938272 - release
+        //  176323 - NSSerialization
     }
     
 //    do {

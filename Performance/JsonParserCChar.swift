@@ -42,6 +42,13 @@ private struct Token {
     }
 }
 
+extension Token: CustomStringConvertible {
+    var description: String {
+        let vals = value.map { Unicode.Scalar(UInt32($0)) }
+        return "\(vals) isstr: \(isString)"
+    }
+}
+
 private final class JsonTokenizer {
     
     var tokens = [Token]()
@@ -174,30 +181,62 @@ private class LiteralParser {
                 continue
             }
             
-            let str = String(cString: token.value)
-            
             if token.isString {
+                let str = String(cString: token.value)
                 itokens.append(.literalValue(.string(str)))
                 continue
             }
-            else if str.lowercased() == TokenChar.null {
-                itokens.append(.literalValue(.null(NSNull())))
+            
+            let chars = token.value
+            
+            if chars.count == 4+1 { // +1 for 0 terminated
+                
+                // check true
+                if    (chars[0] == 84 /*T*/ || chars[0] == 116) /*t*/
+                   && (chars[1] == 82 /*R*/ || chars[1] == 114) /*r*/
+                   && (chars[2] == 85 /*U*/ || chars[2] == 117) /*u*/
+                   && (chars[3] == 69 /*E*/ || chars[3] == 101) /*e*/
+                {
+                    itokens.append(.literalValue(.bool(true)))
+                    continue
+                }
+                
+                // check null
+                if    (chars[0] == 78 /*N*/ || chars[0] == 110) /*n*/
+                   && (chars[1] == 85 /*U*/ || chars[1] == 117) /*u*/
+                   && (chars[2] == 76 /*L*/ || chars[2] == 108) /*l*/
+                   && (chars[3] == 76 /*L*/ || chars[3] == 108) /*l*/
+                {
+                    itokens.append(.literalValue(.null(NSNull())))
+                    continue
+                }
+                
             }
-            else if str.lowercased() == TokenChar.true {
-                itokens.append(.literalValue(.bool(true)))
+            
+            // check false
+            if chars.count == 5+1 { // +1 for 0 terminated
+                if    (chars[0] == 70 /*F*/ || chars[0] == 102) /*f*/
+                   && (chars[1] == 65 /*A*/ || chars[1] == 97) /*a*/
+                   && (chars[2] == 76 /*L*/ || chars[2] == 108) /*l*/
+                   && (chars[3] == 83 /*S*/ || chars[3] == 105) /*s*/
+                   && (chars[4] == 69 /*E*/ || chars[4] == 101) /*e*/
+                {
+                    itokens.append(.literalValue(.bool(false)))
+                    continue
+                }
             }
-            else if str.lowercased() == TokenChar.false {
-                itokens.append(.literalValue(.bool(false)))
-            }
-            else if let number = Double(str) {
+            
+            let str = String(cString: token.value)
+            if let number = Double(str) {
                 itokens.append(.literalValue(.number(number)))
+                continue
             }
-            else {
-                fatalError("Unexpected value: \(token.value)")
-            }
+            
+            fatalError("Unexpected value: \(token.value)")
         }
         return itokens
     }
+    
 }
 
 private enum LiteralToken {
