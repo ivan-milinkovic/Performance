@@ -11,9 +11,9 @@ import Foundation
 //testCleanCode()
 //testcpu()
 //testCollectionMembership()
-testJsonParser()
 //testHaversine()
 //testIterSpeed()
+testJsonParser()
 //testSwiftSpeed()
 
 exit(0)

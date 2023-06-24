@@ -62,9 +62,14 @@ private final class JsonTokenizer {
     
     private func reset() {
         tokens = [Token]()
-        currentToken = [CUChar]()
+        resetCurrentToken()
         isInsideString = false
         isEscape = false
+    }
+    
+    private func resetCurrentToken() {
+        currentToken = [CUChar]()
+        isInsideString = false
     }
     
     func tokenize(_ data: Data) -> [Token] {
@@ -119,8 +124,7 @@ private final class JsonTokenizer {
             currentToken.append(0)
             tokens.append(Token(value: currentToken, isString: isInsideString))
         }
-        currentToken = .init()
-        isInsideString = false
+        resetCurrentToken()
     }
 }
 

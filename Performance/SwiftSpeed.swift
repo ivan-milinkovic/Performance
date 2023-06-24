@@ -8,39 +8,46 @@
 import Foundation
 
 func testSwiftSpeed() {
-    let N = 1000
+    let epochs = 1000
+    var t : Int = 0
     
-    do {
-        let ticks = measureTicks(epochs: N) {
-            let e = Enum1.one
-            let _ = e
+    let n = 1000
+    t = measureTicks(epochs: epochs) {
+        var a = [Int]()
+        var i = 0; while i < n {
+            a.append(i)
+            i += 1
         }
-        print(ticks)
     }
+    print(t)
     
-    do {
-        let ticks = measureTicks(epochs: N) {
-            let e = Enum2.one(123)
-            var _ = e
+    t = measureTicks(epochs: epochs) {
+        var a = [Int]()
+        a.reserveCapacity(1000)
+        var i = 0; while i < n {
+            a.append(i)
+            i += 1
         }
-        print(ticks)
     }
+    print(t)
     
-    do {
-        let ticks = measureTicks(epochs: N) {
-            let e = Enum1.three
-            switch e {
-            case .one:
-                break
-            case .two:
-                break
-            case .three:
-                break
-            }
+    t = measureTicks(epochs: epochs) {
+        var a = ContiguousArray<Int>()
+        var i = 0; while i < n {
+            a.append(i)
+            i += 1
         }
-        print(ticks)
     }
+    print(t)
     
+    t = measureTicks(epochs: epochs) {
+        var a = [Int].init(repeating: 0, count: 1000)
+        var i = 0; while i < n {
+            a[i] = i
+            i += 1
+        }
+    }
+    print(t)
 }
 
 private enum Enum1 {

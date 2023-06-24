@@ -42,8 +42,10 @@ func testJsonParser() {
         let _ = jsonParser.parse(data: data)
         let t1 = mach_absolute_time() - t0
         print(String(format: "%8d", t1))
-        // 1104004 - release
-        //  938272 - release
+        // release:
+        // 1104004
+        //  938272
+        //  925551
         //  176323 - NSSerialization
     }
     
