@@ -14,7 +14,8 @@ import Foundation
  1_104_004 - JsonParserCChar - use chars
    938_272 - JsonParserCChar - avoid string concatenation
    925_551 - JsonParserCChar - reserve capacity
-   835_231 - JsonParserFopen - use fopen, fread and a buffer to iterate
+   835_231 - JsonParserFopen - use FileDataIterator - a buffered wrapper around fopen, fread to iterate
+   814_161 - JsonParserFopen - fopen, fread and buffering inline
    176_323 - JSONSerialization - objective-c
  */
 
