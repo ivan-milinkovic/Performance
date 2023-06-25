@@ -7,6 +7,17 @@
 
 import Foundation
 
+/*
+ Ticks:
+ 2_957_556 - JsonParserUnicode
+ 1_777_051 - JSONDecoder
+ 1_104_004 - JsonParserCChar - use chars
+   938_272 - JsonParserCChar - avoid string concatenation
+   925_551 - JsonParserCChar - reserve capacity
+   835_231 - JsonParserFopen - use fopen, fread and a buffer to iterate
+   176_323 - JSONSerialization - objective-c
+ */
+
 func testJsonParser() {
     
 //    let jsonFile = "testJson.json"
@@ -22,6 +33,7 @@ func testJsonParser() {
 //        let _ = jsonParser.parse(jsonString: jsonString)
 //        let t1 = mach_absolute_time() - t0
 //        print(String(format: "%8d", t1))
+//        // 2_957_556 ticks release
 //    }
     
 //    do {
@@ -34,19 +46,28 @@ func testJsonParser() {
 //        print(String(format: "%8d", t1))
 //    }
     
+//    do {
+//        let t0 = mach_absolute_time()
+//        let data = try! Data(contentsOf: inputFileUrl)
+//        let jsonParser = JsonParserCChar()
+//        jsonParser.log = false
+//        let _ = jsonParser.parse(data: data)
+//        let t1 = mach_absolute_time() - t0
+//        print(String(format: "%8d", t1))
+//        // release:
+//        // 1104004 ticks - use chars
+//        //  938272 - avoid string concatenation
+//        //  925551 - reserve capacity
+//    }
+    
     do {
         let t0 = mach_absolute_time()
-        let data = try! Data(contentsOf: inputFileUrl)
-        let jsonParser = JsonParserCChar()
+        let jsonParser = JsonParserFopen()
         jsonParser.log = false
-        let _ = jsonParser.parse(data: data)
+        let _ = jsonParser.parse(filePath: inputFileUrl.path())
         let t1 = mach_absolute_time() - t0
         print(String(format: "%8d", t1))
-        // release:
-        // 1104004
-        //  938272
-        //  925551
-        //  176323 - NSSerialization
+        // 835_231 ticks release
     }
     
 //    do {
@@ -55,6 +76,7 @@ func testJsonParser() {
 //        let _ = try! JSONDecoder().decode([[String:Double]].self, from: data)
 //        let t1 = mach_absolute_time() - t0
 //        print(String(format: "%8d", t1))
+//        // 1_777_051 ticks release
 //    }
 //
 //    do {
@@ -63,6 +85,7 @@ func testJsonParser() {
 //        let _ = try! JSONSerialization.jsonObject(with: data)
 //        let t1 = mach_absolute_time() - t0
 //        print(String(format: "%8d", t1))
+//        // 176_323 ticks release
 //    }
     
 }

@@ -105,3 +105,42 @@ class Stack<T> {
         contents.count
     }
 }
+
+struct FileDataIterator {
+    
+    private let file: UnsafeMutablePointer<FILE>
+    private let buffSize = 1_000_000
+    private let buff : UnsafeMutableRawPointer
+    private var numread = -1
+    private var index = 0
+    
+    init?(filePath: String) {
+        guard let f = fopen(filePath, "r") else { return nil }
+        file = f
+        buff = UnsafeMutableRawPointer.allocate(byteCount: buffSize, alignment: 1)
+        guard readBuffer() else { return nil }
+    }
+    
+    private mutating func readBuffer() -> Bool {
+        index = 0
+        numread = fread(buff, 1, buffSize, file)
+        if numread == 0 { return false }
+        return true
+    }
+    
+    mutating func next() -> UInt8? {
+        if index == numread {
+            guard readBuffer() else { return nil }
+        }
+        if numread == 0 { return nil } // all read, no more bytes
+        
+        let byte = buff.load(fromByteOffset: index, as: UInt8.self)
+        index += 1
+        return byte
+    }
+    
+    func close() {
+        fclose(file)
+        buff.deallocate()
+    }
+}
