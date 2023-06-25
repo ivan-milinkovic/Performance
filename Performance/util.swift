@@ -144,3 +144,46 @@ struct FileDataIterator {
         buff.deallocate()
     }
 }
+
+struct Buffer<T> {
+    
+    private var buff : [T]
+    private var i = 0
+    private let placeholder: T
+    private var capacity = 10
+    
+    init(placeholder: T) {
+        self.placeholder = placeholder
+        buff = [T].init(repeating: placeholder, count: capacity)
+    }
+    
+    mutating func append(_ v: T) {
+        if i == capacity { increaseCapacity() }
+        buff[i] = v
+        i += 1
+    }
+    
+    private mutating func increaseCapacity() {
+        capacity += capacity
+        var newbuff = [T].init(repeating: placeholder, count: capacity)
+        var j = 0; while j < buff.count { defer { j += 1}
+            newbuff[j] = buff[j]
+        }
+        buff = newbuff
+    }
+    
+    var isEmpty: Bool {
+        i == 0
+    }
+    
+    var count: Int { i }
+    
+    subscript(index: Int) -> T {
+        precondition(0 <= index && index < i)
+        return buff[index]
+    }
+    
+    var array: ArraySlice<T> {
+        buff.prefix(i)
+    }
+}

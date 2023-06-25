@@ -11,6 +11,7 @@ import Foundation
  Ticks:
  2_957_556 - JsonParserUnicode
  1_777_051 - JSONDecoder
+ 1_472_220 - JsonParserBuffers
  1_104_004 - JsonParserCChar - use chars
    938_272 - JsonParserCChar - avoid string concatenation
    925_551 - JsonParserCChar - reserve capacity
@@ -70,6 +71,16 @@ func testJsonParser() {
         print(String(format: "%8d", t1))
         // 835_231 ticks release
     }
+    
+//    do {
+//        let t0 = mach_absolute_time()
+//        let jsonParser = JsonParserBuffers()
+//        jsonParser.log = false
+//        let _ = jsonParser.parse(filePath: inputFileUrl.path())
+//        let t1 = mach_absolute_time() - t0
+//        print(String(format: "%8d", t1))
+//        // 1_472_220 ticks release
+//    }
     
 //    do {
 //        let t0 = mach_absolute_time()

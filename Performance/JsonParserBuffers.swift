@@ -1,6 +1,6 @@
 import Foundation
 
-final class JsonParserFopen {
+final class JsonParserBuffers {
     
     var log = false
     
@@ -22,9 +22,9 @@ final class JsonParserFopen {
 }
 
 private struct Token {
-    let value: [CUChar]
+    let value: Buffer<CUChar>
     let isString: Bool
-    init(value: [CUChar], isString: Bool = false) {
+    init(value: Buffer<CUChar>, isString: Bool = false) {
         self.value = value
         self.isString = isString
     }
@@ -32,7 +32,7 @@ private struct Token {
 
 extension Token: CustomStringConvertible {
     var description: String {
-        let vals = value.map { Unicode.Scalar(UInt32($0)) }
+        let vals = value.array.map { Unicode.Scalar(UInt32($0)) }
         return "\(vals) isstr: \(isString)"
     }
 }
@@ -40,7 +40,7 @@ extension Token: CustomStringConvertible {
 private final class JsonTokenizer {
     
     var tokens = [Token]()
-    var currentToken = [CUChar]()
+    var currentToken = Buffer<CUChar>(placeholder: 0)
     var isInsideString = false // don't tokenize special chars inside a string, keep whitespaces, check for escapes
     var isEscape = false
     
@@ -56,7 +56,7 @@ private final class JsonTokenizer {
     }
     
     private func resetCurrentToken() {
-        currentToken = [CUChar]()
+        currentToken = Buffer<CUChar>(placeholder: 0)
         isInsideString = false
     }
     
@@ -67,10 +67,10 @@ private final class JsonTokenizer {
         let buffSize = 1_000_000
         let buff = UnsafeMutableRawPointer.allocate(byteCount: buffSize, alignment: 1)
         defer { buff.deallocate() }
-
-//        var dataIter = FileDataIterator(filePath: filePath)!
-//        while let char = dataIter.next()
         
+//        var dataIter = FileDataIterator(filePath: filePath)!
+//        while let char = dataIter.next() {
+
         while true {
             let numread = fread(buff, 1, buffSize, file)
             if numread == 0 {
@@ -108,7 +108,9 @@ private final class JsonTokenizer {
                 
                 if TokenChar.isDelimiter(char) {
                     finalizeCurrentToken()
-                    tokens.append(Token(value: [char])) // store the new delimiter token
+                    // store the new delimiter token
+                    currentToken.append(char)
+                    finalizeCurrentToken()
                     continue
                 }
                 
@@ -124,7 +126,6 @@ private final class JsonTokenizer {
     
     private func finalizeCurrentToken() {
         if !currentToken.isEmpty {
-            currentToken.append(0)
             tokens.append(Token(value: currentToken, isString: isInsideString))
         }
         resetCurrentToken()
@@ -134,6 +135,8 @@ private final class JsonTokenizer {
 private typealias CUChar = CUnsignedChar
 
 private struct TokenChar {
+    
+//    static let delimiters : [Character] = [mapOpen, mapClose, arrayOpen, arrayClose, keyValueDelimiter, elementDelimiter]
     
     static let space = CUChar(32) // " "
     static let newline = CUChar(10) // "\n" line feed
@@ -173,7 +176,7 @@ private class LiteralParser {
         for token in tokens {
             
             if token.value.count == 1 {
-                let char = Array(token.value)[0]
+                let char = token.value[0]
                 switch char {
                 case TokenChar.mapOpen:     itokens.append(.mapOpen)
                 case TokenChar.mapClose:    itokens.append(.mapClose)
@@ -187,7 +190,7 @@ private class LiteralParser {
             }
             
             if token.isString {
-                let str = String(cString: token.value)
+                let str = String(cString: Array(token.value.array) + CollectionOfOne(0))
                 itokens.append(.literalValue(.string(str)))
                 continue
             }
@@ -231,7 +234,7 @@ private class LiteralParser {
                 }
             }
             
-            let str = String(cString: token.value)
+            let str = String(cString: Array(token.value.array) + CollectionOfOne(0))
             if let number = Double(str) {
                 itokens.append(.literalValue(.number(number)))
                 continue
