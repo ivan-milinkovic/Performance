@@ -145,7 +145,7 @@ struct FileDataIterator {
     }
 }
 
-struct Buffer<T> {
+struct ArrayBuffer<T> {
     
     private var buff : [T]
     private var i = 0
@@ -186,4 +186,59 @@ struct Buffer<T> {
     var array: ArraySlice<T> {
         buff.prefix(i)
     }
+}
+
+struct PtrBuffer<T> {
+    
+    private var buff : UnsafeMutablePointer<T>
+    private var i = 0
+    private let initialCapacity = 10
+    private var currentCapacity : Int
+    
+    init() {
+        currentCapacity = initialCapacity
+        buff = UnsafeMutablePointer<T>.allocate(capacity: initialCapacity)
+        i = 0
+    }
+    
+    mutating func append(_ v: T) {
+        if i == currentCapacity { increaseCapacity() }
+        buff[i] = v
+        i += 1
+    }
+    
+    private mutating func increaseCapacity() {
+        let newCapacity = currentCapacity + initialCapacity
+        let newbuff = UnsafeMutablePointer<T>.allocate(capacity: newCapacity)
+        var j = 0; while j < currentCapacity { defer { j += 1}
+            newbuff[j] = buff[j]
+        }
+        buff.deallocate()
+        buff = newbuff
+        currentCapacity = newCapacity
+    }
+    
+    func free() {
+        buff.deallocate()
+    }
+    
+    var isEmpty: Bool {
+        i == 0
+    }
+    
+    var count: Int { i }
+    
+    subscript(index: Int) -> T {
+        precondition(0 <= index && index < i)
+        return buff[index]
+    }
+    
+    func array(placeholder: T) -> [T] {
+        var a = Array<T>(repeating: placeholder, count: i)
+        var j = 0; while j < i { defer { j += 1}
+            a[j] = buff[j]
+        }
+        return a
+    }
+
 }

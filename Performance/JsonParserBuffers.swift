@@ -8,7 +8,7 @@ final class JsonParserBuffers {
 
         let tokenizer = JsonTokenizer()
         let tokens = tokenizer.tokenize(filePath)
-//        if log { print("Step 1 Tokens:", tokens.map(\.value).joined(separator: " ")) }
+//        if log { print("Step 1 Tokens:", tokens.map(\.value)) }
 
         let ltokens = LiteralParser.parse(tokens)
 //        if log { print("Step 2 Values:", ltokens.map(\.description).joined(separator: " ")) }
@@ -17,14 +17,18 @@ final class JsonParserBuffers {
         let result = collectionParser.parse(ltokens)
 //        if log { print("Step 3 Semantic:", result) }
         
+        var i = 0; while i < tokens.count { defer { i += 1 }
+            tokens[i].value.free()
+        }
+        
         return result
     }
 }
 
 private struct Token {
-    let value: Buffer<CUChar>
+    let value: PtrBuffer<CUChar>
     let isString: Bool
-    init(value: Buffer<CUChar>, isString: Bool = false) {
+    init(value: PtrBuffer<CUChar>, isString: Bool = false) {
         self.value = value
         self.isString = isString
     }
@@ -32,7 +36,7 @@ private struct Token {
 
 extension Token: CustomStringConvertible {
     var description: String {
-        let vals = value.array.map { Unicode.Scalar(UInt32($0)) }
+        let vals = value.array(placeholder: 0).map { Unicode.Scalar(UInt32($0)) }
         return "\(vals) isstr: \(isString)"
     }
 }
@@ -40,7 +44,7 @@ extension Token: CustomStringConvertible {
 private final class JsonTokenizer {
     
     var tokens = [Token]()
-    var currentToken = Buffer<CUChar>(placeholder: 0)
+    var currentToken = PtrBuffer<CUChar>()
     var isInsideString = false // don't tokenize special chars inside a string, keep whitespaces, check for escapes
     var isEscape = false
     
@@ -56,7 +60,7 @@ private final class JsonTokenizer {
     }
     
     private func resetCurrentToken() {
-        currentToken = Buffer<CUChar>(placeholder: 0)
+        currentToken = PtrBuffer<CUChar>()
         isInsideString = false
     }
     
@@ -121,12 +125,15 @@ private final class JsonTokenizer {
         finalizeCurrentToken()
         let result = tokens
         reset()
+        currentToken.free()
         return result
     }
     
     private func finalizeCurrentToken() {
         if !currentToken.isEmpty {
             tokens.append(Token(value: currentToken, isString: isInsideString))
+        } else {
+            currentToken.free()
         }
         resetCurrentToken()
     }
@@ -190,14 +197,14 @@ private class LiteralParser {
             }
             
             if token.isString {
-                let str = String(cString: Array(token.value.array) + CollectionOfOne(0))
+                let str = String(cString: Array(token.value.array(placeholder: 0)) + CollectionOfOne(0))
                 itokens.append(.literalValue(.string(str)))
                 continue
             }
             
             let chars = token.value
             
-            if chars.count == 4+1 { // +1 for 0 terminated
+            if chars.count == 4 { // +1 for 0 terminated
                 
                 // check true
                 if    (chars[0] == 84 /*T*/ || chars[0] == 116) /*t*/
@@ -222,7 +229,7 @@ private class LiteralParser {
             }
             
             // check false
-            if chars.count == 5+1 { // +1 for 0 terminated
+            if chars.count == 5 { // +1 for 0 terminated
                 if    (chars[0] == 70 /*F*/ || chars[0] == 102) /*f*/
                    && (chars[1] == 65 /*A*/ || chars[1] == 97) /*a*/
                    && (chars[2] == 76 /*L*/ || chars[2] == 108) /*l*/
@@ -234,7 +241,7 @@ private class LiteralParser {
                 }
             }
             
-            let str = String(cString: Array(token.value.array) + CollectionOfOne(0))
+            let str = String(cString: Array(token.value.array(placeholder: 0)) + CollectionOfOne(0))
             if let number = Double(str) {
                 itokens.append(.literalValue(.number(number)))
                 continue

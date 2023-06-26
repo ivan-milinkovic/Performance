@@ -67,25 +67,26 @@ func testJsonParser() {
 //        //  925551 - reserve capacity
 //    }
     
+//    do {
+//        let t0 = mach_absolute_time()
+//        let jsonParser = JsonParserFopen()
+//        jsonParser.log = false
+//        let j = jsonParser.parse(filePath: inputFileUrl.path())
+//        print(j)
+//        let t1 = mach_absolute_time() - t0
+//        print(String(format: "%8d", t1))
+//        // 835_231 ticks release
+//    }
+    
     do {
         let t0 = mach_absolute_time()
-        let jsonParser = JsonParserFopen()
+        let jsonParser = JsonParserBuffers()
         jsonParser.log = false
         let _ = jsonParser.parse(filePath: inputFileUrl.path())
         let t1 = mach_absolute_time() - t0
         print(String(format: "%8d", t1))
-        // 835_231 ticks release
+        // 1_472_220 ticks release
     }
-    
-//    do {
-//        let t0 = mach_absolute_time()
-//        let jsonParser = JsonParserBuffers()
-//        jsonParser.log = false
-//        let _ = jsonParser.parse(filePath: inputFileUrl.path())
-//        let t1 = mach_absolute_time() - t0
-//        print(String(format: "%8d", t1))
-//        // 1_472_220 ticks release
-//    }
     
 //    do {
 //        let t0 = mach_absolute_time()
