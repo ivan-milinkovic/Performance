@@ -12,12 +12,17 @@ import Foundation
  2_957_556 - JsonParserUnicode
  1_777_051 - JSONDecoder
  1_472_220 - JsonParserBuffers
- 1_104_004 - JsonParserCChar - use chars
+ 1_104_004 - JsonParserCChar - use chars instead of strings
    938_272 - JsonParserCChar - avoid string concatenation
    925_551 - JsonParserCChar - reserve capacity
    835_231 - JsonParserFopen - use FileDataIterator - a buffered wrapper around fopen, fread to iterate
    814_161 - JsonParserFopen - fopen, fread and buffering inline
    176_323 - JSONSerialization - objective-c
+ 
+ high %:
+      Array allocations / resizing
+      Double parsing (default checks locales)
+      String uses dynamically linked implementation, links to system library, DYLD-Stub
  */
 
 func testJsonParser() {
