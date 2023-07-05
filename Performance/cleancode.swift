@@ -7,10 +7,9 @@ func testCleanCode() {
     let structShapes = genClassShapes(cnt: cnt)
     let staticShapes = genStaticShapes(cnt: cnt)
     
-    let epochs = 1
-    let t_vt_class = measureVT(shapes: classShapes, epochs: epochs)
-    let t_vt_struct = measureVT(shapes: structShapes, epochs: epochs)
-    let t_static = measureStatic(shapes: staticShapes, epochs: epochs)
+    let t_vt_class = measureVT(shapes: classShapes)
+    let t_vt_struct = measureVT(shapes: structShapes)
+    let t_static = measureStatic(shapes: staticShapes)
     
     print("class:", t_vt_class.string)
     print("struct:", t_vt_struct.string)
@@ -20,36 +19,24 @@ func testCleanCode() {
 
 // measurements
 
-private func measureVT(shapes: [IShape], epochs: Int) -> Duration {
-    var dt = 0.0
-    let cnt = shapes.count
-    var e = 0; while e < epochs {
-        let t0 = Date()
+private func measureVT(shapes: [IShape]) -> Duration {
+    ContinuousClock().measure {
+        let cnt = shapes.count
         var i = 0; while i < cnt {
             _ = shapes[i].area()
             i += 1
         }
-        dt += Date().timeIntervalSince(t0)
-        e += 1
     }
-    return Duration.seconds(dt)
 }
 
-
-
-private func measureStatic(shapes: [Shape], epochs: Int) -> Duration {
-    var dt = 0.0
-    let cnt = shapes.count
-    var e = 0; while e < epochs {
-        let t0 = Date()
+private func measureStatic(shapes: [Shape]) -> Duration {
+    return ContinuousClock().measure {
+        let cnt = shapes.count
         var i = 0; while i < cnt {
             _ = shapes[i].area()
             i += 1
         }
-        dt += Date().timeIntervalSince(t0)
-        e += 1
     }
-    return Duration.seconds(dt)
 }
 
 
@@ -60,10 +47,10 @@ private func genStaticShapes(cnt: Int) -> [Shape] {
     var a = [Shape]()
     a.reserveCapacity(cnt)
     for _ in 0..<cnt/4 {
-        a.append(Shape(type: .square, w: randVal(), h: randVal()))
-        a.append(Shape(type: .rectangle, w: randVal(), h: randVal()))
-        a.append(Shape(type: .triangle, w: randVal(), h: randVal()))
-        a.append(Shape(type: .circle, w: randVal(), h: randVal()))
+        a.append(Shape(type: .square   , w: 1.0, h: 1.0))
+        a.append(Shape(type: .rectangle, w: 1.0, h: 1.0))
+        a.append(Shape(type: .triangle , w: 1.0, h: 1.0))
+        a.append(Shape(type: .circle   , w: 1.0, h: 1.0))
     }
     return a
 }
@@ -72,10 +59,10 @@ private func genClassShapes(cnt: Int) -> [IShape] {
     var a = [IShape]()
     a.reserveCapacity(cnt)
     for _ in 0..<cnt/4 {
-        a.append(CSquare(w: randVal()))
-        a.append(CRectangle(w: randVal(), h: randVal()))
-        a.append(CTriangle(w: randVal(), h: randVal()))
-        a.append(CCircle(w: randVal()))
+        a.append(CSquare   (w: 1.0))
+        a.append(CRectangle(w: 1.0, h: 1.0))
+        a.append(CTriangle (w: 1.0, h: 1.0))
+        a.append(CCircle   (w: 1.0))
     }
     return a
 }
@@ -84,18 +71,13 @@ private func genStructShapes(cnt: Int) -> [IShape] {
     var a = [IShape]()
     a.reserveCapacity(cnt)
     for _ in 0..<cnt/4 {
-        a.append(SSquare(w: randVal()))
-        a.append(SRectangle(w: randVal(), h: randVal()))
-        a.append(STriangle(w: randVal(), h: randVal()))
-        a.append(SCircle(w: randVal()))
+        a.append(SSquare   (w: 1.0))
+        a.append(SRectangle(w: 1.0, h: 1.0))
+        a.append(STriangle (w: 1.0, h: 1.0))
+        a.append(SCircle   (w: 1.0))
     }
     return a
 }
-
-private func randVal() -> Double {
-    Double.random(in: 1...10)
-}
-
 
 //
 // static

@@ -39,7 +39,12 @@ func timeString(_ s: Double) -> String {
         return String(format: "%.2fus", us)
     }
     let ns = us * 1_000
-    return String(format: "%.2fns", ns)
+    if floor(ns) != 0 {
+        return String(format: "%.2fns", ns)
+    }
+    
+    let ps = ns * 1_000
+    return String(format: "%.2fps", ps)
 }
 
 extension UInt8 {
