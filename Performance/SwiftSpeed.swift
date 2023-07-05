@@ -11,9 +11,29 @@ func testSwiftSpeed() {
     let epochs = 1000
     var t : Int = 0
     
+    /*
+     data copy ptr: 688 - however big allocation overhead for large data
+     data iter: 10956
+     nsdata: 368729
+     data forEach: 13116
+     data ptr: 7742
+     data fopen: 228
+     data fopen iter: 1029
+     */
+    
 //    let jsonFile = "coords_1_000.json"
 //    let fileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
 //
+//    t = measureTicks(epochs: epochs) {
+//        let data = try! Data(contentsOf: fileUrl)
+//        let ptr = UnsafeMutableRawBufferPointer.allocate(byteCount: data.count, alignment: 1)
+//        data.copyBytes(to: ptr)
+//        var i = 0; while i < data.count { defer { i += 1 }
+//            let _ = ptr[i]
+//        }
+//    }
+//    print("data copy ptr:", t)
+    
 //    t = measureTicks(epochs: epochs) {
 //        let data = try! Data(contentsOf: fileUrl)
 //        var iter = data.makeIterator()
@@ -38,7 +58,7 @@ func testSwiftSpeed() {
 //        }
 //    }
 //    print("data forEach:", t)
-
+//
 //    t = measureTicks(epochs: epochs) {
 //        let data = try! Data(contentsOf: fileUrl)
 //        data.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
