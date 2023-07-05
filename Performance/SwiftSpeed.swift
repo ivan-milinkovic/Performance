@@ -15,6 +15,7 @@ func testSwiftSpeed() {
      data copy ptr: 688 - however big allocation overhead for large data
      data iter: 10956
      nsdata: 368729
+     nsdata bytes: 80343
      data forEach: 13116
      data ptr: 7742
      data fopen: 228
@@ -50,6 +51,15 @@ func testSwiftSpeed() {
 //        }
 //    }
 //    print("nsdata:", t)
+//
+//    t = measureTicks(epochs: epochs) {
+//        let data = NSData(contentsOf: fileUrl)!
+//        var i = 0; while i < data.count { defer { i += 1 }
+//            let _ = (data.bytes + i).load(as: UInt8.self)
+//        }
+//    }
+//    print("nsdata bytes:", t)
+//
 //
 //    t = measureTicks(epochs: epochs) {
 //        let data = try! Data(contentsOf: fileUrl)
