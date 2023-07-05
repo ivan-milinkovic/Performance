@@ -1,33 +1,16 @@
 import Foundation
 
 final class JsonParserUnicode {
-    
-    var log = false
-    
+
     func parse(jsonString str: String) -> Any {
-        
-//        let t0 = mach_absolute_time()
         
         let tokenizer = JsonTokenizer()
         let tokens = tokenizer.tokenize(jsonString: str)
-//        if log { print("Step 1 Tokens:", tokens.map(\.value).joined(separator: " ")) }
-        
-//        let t1 = mach_absolute_time()
-        
+
         let ltokens = LiteralParser.parse(tokens)
-//        if log { print("Step 2 Values:", ltokens.map(\.description).joined(separator: " ")) }
-        
-//        let t2 = mach_absolute_time()
         
         let collectionParser = CollectionParser()
         let result = collectionParser.parse(ltokens)
-//        if log { print("Step 3 Semantic:", result) }
-        
-//        let t3 = mach_absolute_time()
-//        let ttotal = Double(t3 - t0)
-//        print("tokenizer:\t", String(format: "%.2f", Double(t1 - t0) / ttotal * 100.0), "%")
-//        print("values:\t\t", String(format: "%.2f", Double(t2 - t1) / ttotal * 100.0), "%")
-//        print("collections:", String(format: "%.2f", Double(t3 - t2) / ttotal * 100.0), "%")
         
         return result
     }

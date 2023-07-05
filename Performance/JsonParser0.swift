@@ -1,19 +1,5 @@
 import Foundation
 
-func testJsonParser0() {
-    let jsonFile = "testJson.json"
-    let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
-    let jsonString = try! String.init(contentsOf: inputFileUrl)
-    print("input:")
-    print(jsonString)
-    let jsonParser = JsonParser0()
-    let jsonStructure = jsonParser.parse(jsonString: jsonString)
-    print()
-    print("output:")
-    print(jsonStructure)
-    print()
-}
-
 // problem: chars get swallowed between state changes, because iterator always advances
 // fix: remember carry over char and don't do iter.next() if it is present, just process the current one with the new state
 

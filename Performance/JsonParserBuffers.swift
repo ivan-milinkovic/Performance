@@ -2,20 +2,15 @@ import Foundation
 
 final class JsonParserBuffers {
     
-    var log = false
-    
     func parse(filePath: String) -> Any {
 
         let tokenizer = JsonTokenizer()
         let tokens = tokenizer.tokenize(filePath)
-//        if log { print("Step 1 Tokens:", tokens.map(\.value)) }
 
         let ltokens = LiteralParser.parse(tokens)
-//        if log { print("Step 2 Values:", ltokens.map(\.description).joined(separator: " ")) }
 
         let collectionParser = CollectionParser()
         let result = collectionParser.parse(ltokens)
-//        if log { print("Step 3 Semantic:", result) }
         
         var i = 0; while i < tokens.count { defer { i += 1 }
             tokens[i].value.free()

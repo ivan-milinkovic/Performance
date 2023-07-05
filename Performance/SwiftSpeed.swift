@@ -79,6 +79,17 @@ func testSwiftSpeed() {
 //    }
 //    print("data ptr:", t)
 //
+//    t = measureTicks(epochs: epochs) {
+//        let data = try! Data(contentsOf: fileUrl)
+//        data.withContiguousStorageIfAvailable { (ptr: UnsafeBufferPointer<UInt8>) in
+//            var i = 0; while i < data.count { defer { i += 1 }
+//                let _ = data[i]
+//            }
+//        }
+//    }
+//    print("data cont ptr:", t)
+//
+//
 //    // buffer of:
 //    // 5 equals swifts Data performance
 //    // 1MB (1_000_000) ~ 800 ticks
@@ -148,6 +159,7 @@ func testSwiftSpeed() {
 //        }
 //    }
 //    print("[Int].repeating:", t)
+    
     
     // while vs forEach
     let n = 1000

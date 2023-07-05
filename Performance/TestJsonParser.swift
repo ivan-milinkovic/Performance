@@ -36,64 +36,58 @@ func testJsonParser() {
 //        var jsonString = try! String.init(contentsOf: inputFileUrl)
 //        jsonString.makeContiguousUTF8()
 //        let jsonParser = JsonParserUnicode()
-//        jsonParser.log = false
 //        let _ = jsonParser.parse(jsonString: jsonString)
 //        let t1 = mach_absolute_time() - t0
-//        print(String(format: "%8d", t1))
+//        print("JsonParserUnicode", String(format: "%8d", t1))
 //        // 2_957_556 ticks release
 //    }
-    
+//
 //    do {
 //        let t0 = mach_absolute_time()
 //        let data = try! Data(contentsOf: inputFileUrl)
 //        let jsonParser = JsonParserAscii()
-//        jsonParser.log = false
 //        let _ = jsonParser.parse(data: data)
 //        let t1 = mach_absolute_time() - t0
-//        print(String(format: "%8d", t1))
+//        print("JsonParserAscii", String(format: "%8d", t1))
 //    }
-    
-//    do {
-//        let t0 = mach_absolute_time()
-//        let data = try! Data(contentsOf: inputFileUrl)
-//        let jsonParser = JsonParserCChar()
-//        jsonParser.log = false
-//        let _ = jsonParser.parse(data: data)
-//        let t1 = mach_absolute_time() - t0
-//        print(String(format: "%8d", t1))
-//        // release:
-//        // 1104004 ticks - use chars
-//        //  938272 - avoid string concatenation
-//        //  925551 - reserve capacity
-//    }
-    
+
+    do {
+        let t0 = mach_absolute_time()
+        let data = try! Data(contentsOf: inputFileUrl)
+        let jsonParser = JsonParserCChar()
+        let _ = jsonParser.parse(data: data)
+        let t1 = mach_absolute_time() - t0
+        print("JsonParserCChar:", String(format: "%8d", t1))
+        // release:
+        // 1104004 ticks - use chars
+        //  938272 - avoid string concatenation
+        //  925551 - reserve capacity
+    }
+
 //    do {
 //        let t0 = mach_absolute_time()
 //        let jsonParser = JsonParserFopen()
-//        jsonParser.log = false
-//        let j = jsonParser.parse(filePath: inputFileUrl.path())
-//        print(j)
+//        let _ = jsonParser.parse(filePath: inputFileUrl.path())
 //        let t1 = mach_absolute_time() - t0
-//        print(String(format: "%8d", t1))
+//        print("JsonParserFopen:", String(format: "%8d", t1))
 //        // 835_231 ticks release
 //    }
-    
-    do {
-        let t0 = mach_absolute_time()
-        let jsonParser = JsonParserBuffers()
-        jsonParser.log = false
-        let _ = jsonParser.parse(filePath: inputFileUrl.path())
-        let t1 = mach_absolute_time() - t0
-        print(String(format: "%8d", t1))
-        // 1_472_220 ticks release
-    }
-    
+//
+//    do {
+//        let t0 = mach_absolute_time()
+//        let jsonParser = JsonParserBuffers()
+//        let _ = jsonParser.parse(filePath: inputFileUrl.path())
+//        let t1 = mach_absolute_time() - t0
+//        print("JsonParserBuffers:", String(format: "%8d", t1))
+//        // 1_472_220 ticks release
+//    }
+//
 //    do {
 //        let t0 = mach_absolute_time()
 //        let data = try! Data.init(contentsOf: inputFileUrl)
 //        let _ = try! JSONDecoder().decode([[String:Double]].self, from: data)
 //        let t1 = mach_absolute_time() - t0
-//        print(String(format: "%8d", t1))
+//        print("jsondecoder:", String(format: "%8d", t1))
 //        // 1_777_051 ticks release
 //    }
 //
@@ -102,7 +96,7 @@ func testJsonParser() {
 //        let data = try! Data.init(contentsOf: inputFileUrl)
 //        let _ = try! JSONSerialization.jsonObject(with: data)
 //        let t1 = mach_absolute_time() - t0
-//        print(String(format: "%8d", t1))
+//        print("jsonserialization:", String(format: "%8d", t1))
 //        // 176_323 ticks release
 //    }
     
