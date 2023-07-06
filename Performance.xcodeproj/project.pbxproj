@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2C228BF22A463EA400D18786 /* TestIterSpeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C228BF12A463EA400D18786 /* TestIterSpeed.swift */; };
+		2C286F232A569635008B76A1 /* TestTimeMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C286F222A569635008B76A1 /* TestTimeMeasurement.swift */; };
 		2C6EEAC52A2A83F200EF3BDA /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6EEAC42A2A83F200EF3BDA /* main.swift */; };
 		2C6EEACC2A2B9C5500EF3BDA /* add.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6EEACB2A2B9C5500EF3BDA /* add.swift */; };
 		2C6EEACE2A2B9CBB00EF3BDA /* util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6EEACD2A2B9CBB00EF3BDA /* util.swift */; };
@@ -45,6 +46,7 @@
 
 /* Begin PBXFileReference section */
 		2C228BF12A463EA400D18786 /* TestIterSpeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestIterSpeed.swift; sourceTree = "<group>"; };
+		2C286F222A569635008B76A1 /* TestTimeMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTimeMeasurement.swift; sourceTree = "<group>"; };
 		2C6DE0602A36156C00443E88 /* PerformanceTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = PerformanceTests.xctestplan; sourceTree = "<group>"; };
 		2C6EEAC12A2A83F200EF3BDA /* Performance */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Performance; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C6EEAC42A2A83F200EF3BDA /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 				2C8E71D82A48CA560004CDDD /* JsonParserBuffers.swift */,
 				2C228BF12A463EA400D18786 /* TestIterSpeed.swift */,
 				2CC8C1DD2A464DAD00EFF8EF /* SwiftSpeed.swift */,
+				2C286F222A569635008B76A1 /* TestTimeMeasurement.swift */,
 				2C880CF12A3C4046006CFE4B /* CollectionMembershipTest.swift */,
 				2CBE79C52A3063180016B8C9 /* globals.swift */,
 				2C6EEACD2A2B9CBB00EF3BDA /* util.swift */,
@@ -239,6 +242,7 @@
 				2C6EEACE2A2B9CBB00EF3BDA /* util.swift in Sources */,
 				2C6EEACC2A2B9C5500EF3BDA /* add.swift in Sources */,
 				2C8E71D32A46FCA30004CDDD /* TestJsonParser.swift in Sources */,
+				2C286F232A569635008B76A1 /* TestTimeMeasurement.swift in Sources */,
 				2CBE79C62A3063180016B8C9 /* globals.swift in Sources */,
 				2C6EEAD02A2BA15C00EF3BDA /* haversine.swift in Sources */,
 				2C8E71D52A46FFF10004CDDD /* JsonParserCChar.swift in Sources */,

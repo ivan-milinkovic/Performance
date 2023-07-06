@@ -19,24 +19,24 @@ func testCleanCode() {
 
 // measurements
 
-private func measureVT(shapes: [IShape]) -> Duration {
-    ContinuousClock().measure {
-        let cnt = shapes.count
-        var i = 0; while i < cnt {
-            _ = shapes[i].area()
-            i += 1
-        }
+private func measureVT(shapes: [IShape]) -> TimeInterval {
+    let d0 = Date()
+    let cnt = shapes.count
+    var i = 0; while i < cnt {
+        _ = shapes[i].area()
+        i += 1
     }
+    return Date().timeIntervalSince(d0)
 }
 
-private func measureStatic(shapes: [Shape]) -> Duration {
-    return ContinuousClock().measure {
-        let cnt = shapes.count
-        var i = 0; while i < cnt {
-            _ = shapes[i].area()
-            i += 1
-        }
+private func measureStatic(shapes: [Shape]) -> TimeInterval {
+    let d0 = Date()
+    let cnt = shapes.count
+    var i = 0; while i < cnt {
+        _ = shapes[i].area()
+        i += 1
     }
+    return Date().timeIntervalSince(d0)
 }
 
 

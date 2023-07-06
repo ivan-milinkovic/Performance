@@ -26,6 +26,12 @@ extension ContinuousClock.Instant.Duration {
     }
 }
 
+extension TimeInterval {
+    var string: String {
+        timeString(self)
+    }
+}
+
 func timeString(_ s: Double) -> String {
     if floor(s) != 0 {
         return String(format: "%.2fs", s)

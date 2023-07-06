@@ -8,5 +8,4 @@ import Foundation
 //testIterSpeed()
 testJsonParser()
 //testSwiftSpeed()
-
-exit(0)
+//testTimeMeasurement()
