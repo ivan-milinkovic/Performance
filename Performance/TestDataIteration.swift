@@ -3,18 +3,21 @@ import Foundation
 func testDataIteration() {
     
     /*
-     data copy ptr: 931 - however big allocation overhead for large data
-     data iter: 11295
-     nsdata: 391641
-     nsdata bytes: 79955
-     data forEach: 13376
-     data ptr: 7826
-     data cont ptr: 0 - closure not called (means not contiguous memory)
-     data fopen: 600
-     data fopen iter: 1214
+     data copy ptr: 996
+     data iter: 11413
+     nsdata: 384310
+     nsdata bytes: 76536
+     data forEach: 14181
+     data ptr: 7691
+     data cont ptr: 1
+     data fopen: 619
+     data fopen iter: 1199
+     BufferedDataReader: 5265
      */
     
     let jsonFile = "coords_1_000.json"
+//    let jsonFile = "coords_10_000.json"
+//    let jsonFile = "coords_1_000_000.json"
     let fileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
 
     do {
@@ -127,8 +130,7 @@ func testDataIteration() {
         Profiler.end(0)
         print("data fopen:", Profiler.ticks(0))
     }
-
-    // 9105 ticks
+    
     do {
         Profiler.reset()
         Profiler.start(0)
@@ -137,5 +139,51 @@ func testDataIteration() {
         iter.close()
         Profiler.end(0)
         print("data fopen iter:", Profiler.ticks(0))
+    }
+    
+    do {
+//        let data = Data([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+        let data = try! Data(contentsOf: fileUrl)
+        Profiler.reset()
+        Profiler.start(0)
+        var dataReader = BufferedDataReader(data: data, buffSize: 1000)
+        while let byte = dataReader.next() {
+            let _ = byte
+        }
+        Profiler.end(0)
+        print("BufferedDataReader:", Profiler.ticks(0))
+    }
+}
+
+struct BufferedDataReader {
+    let data: Data
+    private let buffSize : Int
+    private var buffer : [UInt8]
+    private var i_data = 0 // whole data index counter
+    private var i_buff = 0 // current buffer index
+    
+    init(data: Data, buffSize: Int) {
+        self.data = data
+        self.buffSize = buffSize
+        buffer = [UInt8](repeating: 0, count: buffSize)
+        loadBuffer()
+    }
+    
+    private mutating func loadBuffer() {
+        if i_data >= data.count { return }
+        let upperBound = min(data.count, i_data + buffSize)
+        let range = i_data..<upperBound
+        data.copyBytes(to: &buffer, from: range)
+        i_buff = 0
+    }
+    
+    mutating func next() -> UInt8? {
+        if i_data >= data.count { return nil }
+        if i_buff >= buffSize { loadBuffer() }
+        defer {
+            i_data += 1
+            i_buff += 1
+        }
+        return buffer[i_buff]
     }
 }
