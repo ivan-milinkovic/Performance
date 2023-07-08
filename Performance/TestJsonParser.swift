@@ -8,13 +8,14 @@
 import Foundation
 
 /*
- JsonParserUnicode 2_343_682 ticks, 97.65ms
- JsonParserAscii   2_339_993 ticks, 97.50ms
- JSONDecoder       1_856_054 ticks, 77.34ms
- JsonParserBuffers   941_253 ticks, 39.22ms
- JsonParserFopen     818_944 ticks, 34.12ms
- JsonParserCChar     817_413 ticks, 34.06ms
- JSONSerialization   164_948 ticks,  6.87ms
+ JsonParserValues: 12_616_383 ticks, 525.68ms
+ JsonParserUnicode  2_343_682 ticks, 97.65ms
+ JsonParserAscii    2_339_993 ticks, 97.50ms
+ JSONDecoder        1_856_054 ticks, 77.34ms
+ JsonParserBuffers    941_253 ticks, 39.22ms
+ JsonParserFopen      818_944 ticks, 34.12ms
+ JsonParserCChar      817_413 ticks, 34.06ms
+ JSONSerialization    164_948 ticks,  6.87ms
  
  (release configuration)
  
@@ -87,6 +88,16 @@ func testJsonParser() {
         let _ = jsonParser.parse(data: data)
         Profiler.end(0)
         print("JsonParserBuffers:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
+    
+    do {
+        let data = try! Data(contentsOf: inputFileUrl)
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserValues()
+        let _ = jsonParser.parse(data: data)
+        Profiler.end(0)
+        print("JsonParserValues:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
 
     do {

@@ -115,6 +115,10 @@ class Stack<T> {
     var count: Int {
         contents.count
     }
+    
+    func replaceTop(_ val: T) {
+        contents[contents.count - 1] = val
+    }
 }
 
 struct FileDataIterator {
