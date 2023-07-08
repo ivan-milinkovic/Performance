@@ -6,6 +6,6 @@ import Foundation
 //testCollectionMembership()
 //testHaversine()
 //testIterSpeed()
-testJsonParser()
+//testJsonParser()
 //testSwiftSpeed()
-//testTimeMeasurement()
+testTimeMeasurement()

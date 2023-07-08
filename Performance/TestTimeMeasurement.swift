@@ -26,6 +26,11 @@ func testTimeMeasurement() {
     let s = Double(dt) / 1_000_000_000
     //print(dt, "ns")
     print("mach_absolute_time:", s, "s")
+    
+    Profiler.start(0)
+    doSomeWork()
+    Profiler.end(0)
+    print("Profiler:", Profiler.seconds(0), "s")
 }
 
 private func doSomeWork() {
