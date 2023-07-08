@@ -1,5 +1,6 @@
 import Foundation
 
+// Attempts to do both tokenization and value parsing and collections in one go.
 // problem: chars get swallowed between state changes, because iterator always advances
 // fix: remember carry over char and don't do iter.next() if it is present, just process the current one with the new state
 
