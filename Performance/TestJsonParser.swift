@@ -6,8 +6,11 @@
 //
 
 import Foundation
+import OSLog
 
 /*
+ coords_10_000.json release
+ 
  JsonParserValues: 12_616_383 ticks, 525.68ms
  JsonParserUnicode  2_343_682 ticks, 97.65ms
  JsonParserAscii    2_339_993 ticks, 97.50ms
@@ -17,7 +20,6 @@ import Foundation
  JsonParserCChar      817_413 ticks, 34.06ms
  JSONSerialization    164_948 ticks,  6.87ms
  
- (release configuration)
  
  JsonParserCChar:
  1_104_004 - use chars instead of strings
@@ -39,6 +41,7 @@ func testJsonParser() {
 //    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
     let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
+    let signposter = OSSignposter()
     
     do {
         var jsonString = try! String.init(contentsOf: inputFileUrl)
@@ -72,11 +75,13 @@ func testJsonParser() {
 
     do {
         let data = try! Data(contentsOf: inputFileUrl)
+        let state = signposter.beginInterval("JsonParserCChar")
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserCChar()
         let _ = jsonParser.parse(data: data)
         Profiler.end(0)
+        signposter.endInterval("JsonParserCChar", state)
         print("JsonParserCChar:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
     
@@ -89,7 +94,7 @@ func testJsonParser() {
         Profiler.end(0)
         print("JsonParserBuffers:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
-    
+
     do {
         let data = try! Data(contentsOf: inputFileUrl)
         Profiler.reset()
@@ -111,10 +116,12 @@ func testJsonParser() {
 
     do {
         let data = try! Data.init(contentsOf: inputFileUrl)
+        let state = signposter.beginInterval("JSONSerialization")
         Profiler.reset()
         Profiler.start(0)
         let _ = try! JSONSerialization.jsonObject(with: data)
         Profiler.end(0)
+        signposter.endInterval("JSONSerialization", state)
         print("JSONSerialization:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
     

@@ -116,6 +116,7 @@ class Stack<T> {
         contents.count
     }
     
+    // Used to modify values (as they are copied when taken out)
     func replaceTop(_ val: T) {
         contents[contents.count - 1] = val
     }
