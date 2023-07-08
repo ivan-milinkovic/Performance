@@ -27,6 +27,7 @@ func testTimeMeasurement() {
     //print(dt, "ns")
     print("mach_absolute_time:", s, "s")
     
+    Profiler.reset()
     Profiler.start(0)
     doSomeWork()
     Profiler.end(0)

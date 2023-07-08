@@ -2,24 +2,35 @@ import Foundation
 
 struct Profiler {
     
-    static private var values = [UInt64](repeating: 0, count: 10)
+    static private var values = [Int64](repeating: 0, count: 10)
+    
+    static func reset() {
+        let _ = t_start // static variables are initialized lazily when first used, so manually force it to initialize early
+        for i in 0..<values.count {
+            values[i] = 0
+        }
+    }
     
     static func start(_ i: Int) {
-        values[i] += mach_absolute_time()
+        let t = mach_absolute_time()
+        values[i] = values[i] + Int64(t - t_start)
     }
     
     static func end(_ i: Int) {
-        values[i] = mach_absolute_time() - values[i]
+        let dt = Int64(mach_absolute_time() - t_start)
+        values[i] = values[i] - dt
     }
     
     static func nanos(_ i: Int) -> Double {
-        let nanos = (values[i] * UInt64(timeInfo.numer)) / UInt64(timeInfo.denom)
+        let nanos = abs((values[i] * Int64(timeInfo.numer)) / Int64(timeInfo.denom))
         return Double(nanos)
     }
     
     static func seconds(_ i: Int) -> Double {
         nanos(i) / 1_000_000_000
     }
+    
+    static private let t_start: UInt64 = mach_absolute_time()
     
     static private var timeInfo: mach_timebase_info = {
         var ti = mach_timebase_info()
