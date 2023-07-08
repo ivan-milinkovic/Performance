@@ -37,7 +37,7 @@ private func testRunning() {
 
 func runBinary(_ data: Data) {
     registers.IP = 0
-    var dataIterator = DataIterator(data: data)
+    var dataIterator = IndexedDataIterator(data: data)
     while dataIterator.hasMore {
         let cmd = parse(dataIterator: &dataIterator)
         print(makeSource(cmd: cmd))
@@ -85,7 +85,7 @@ struct Flags {
     var P = false // parity
 }
 
-func runCommand(_ cmd: Command, dataIter: inout DataIterator) {
+func runCommand(_ cmd: Command, dataIter: inout IndexedDataIterator) {
     let args = makeCommandArgs(cmd)
     let optype = operationType(forOpcode: cmd.opcode)
     
@@ -124,7 +124,7 @@ func runCommand(_ cmd: Command, dataIter: inout DataIterator) {
     }
 }
 
-private func jump(longOpcode: LongOpcode, disp: UInt8, dataIter: inout DataIterator) {
+private func jump(longOpcode: LongOpcode, disp: UInt8, dataIter: inout IndexedDataIterator) {
     let disp = Int(Int8(truncatingIfNeeded: disp))
     if checkCondition(longOpcode: longOpcode) {
         dataIter.jump(displacement: disp)
@@ -370,7 +370,7 @@ private func operationType(forOpcode opcode: Opcode) -> OperationType {
 
 private func parse(data: Data) -> [Command] {
     var cmds = [Command]()
-    var dataIterator = DataIterator(data: data)
+    var dataIterator = IndexedDataIterator(data: data)
     while dataIterator.hasMore {
         cmds.append(parse(dataIterator: &dataIterator))
     }
@@ -378,7 +378,7 @@ private func parse(data: Data) -> [Command] {
 }
 
 
-private func parse(dataIterator dataIter: inout DataIterator) -> Command {
+private func parse(dataIterator dataIter: inout IndexedDataIterator) -> Command {
     let b = dataIter.next()!
     
     // Check short opcode
@@ -508,7 +508,7 @@ private func parse(dataIterator dataIter: inout DataIterator) -> Command {
 }
 
 
-private func parseStandard2ndByte(iter i: inout DataIterator, W: Bool)
+private func parseStandard2ndByte(iter i: inout IndexedDataIterator, W: Bool)
     -> (mod: Mod, regOrOpcode: UInt8, rm: RM, disp0: UInt8, disp1: UInt8?) {
 
     guard let b2 = i.next() else { fatalError("unexpected binary") }
@@ -559,7 +559,7 @@ private func resolveRM(mod: Mod, W: Bool, rm: UInt8) -> RM {
     return RM.eac(bits: rm, regs: regs)
 }
 
-private func readDataFields(wide: Bool, dataIterator i: inout DataIterator) -> (dataLow: UInt8, dataHigh: UInt8?) {
+private func readDataFields(wide: Bool, dataIterator i: inout IndexedDataIterator) -> (dataLow: UInt8, dataHigh: UInt8?) {
     guard let dataLow = i.next() else { fatalError("unexpected eof") }
     var dataHigh : UInt8? = nil
     if wide {
@@ -864,7 +864,7 @@ func writeFile(_ name: String, asm: String) {
 //    }
 //}
 
-struct DataIterator: IteratorProtocol {
+struct IndexedDataIterator: IteratorProtocol {
     private let data: Data
     
     mutating func jump(displacement: Int) {

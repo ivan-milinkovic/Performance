@@ -2,7 +2,7 @@ import Foundation
 
 struct Profiler {
     
-    static private var values = [Int64](repeating: 0, count: 10)
+    static private var values = [Int64](repeating: 0, count: 16)
     
     static func reset() {
         let _ = t_start // static variables are initialized lazily when first used, so manually force it to initialize early
@@ -19,6 +19,10 @@ struct Profiler {
     static func end(_ i: Int) {
         let dt = Int64(mach_absolute_time() - t_start)
         values[i] = values[i] - dt
+    }
+    
+    static func ticks(_ i: Int) -> Int64 {
+        abs(values[i])
     }
     
     static func nanos(_ i: Int) -> Double {
