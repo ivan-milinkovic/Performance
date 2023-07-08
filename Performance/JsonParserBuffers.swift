@@ -2,10 +2,10 @@ import Foundation
 
 final class JsonParserBuffers {
     
-    func parse(filePath: String) -> Any {
+    func parse(data: Data) -> Any {
 
         let tokenizer = JsonTokenizer()
-        let tokens = tokenizer.tokenize(filePath)
+        let tokens = tokenizer.tokenize(data)
 
         let ltokens = LiteralParser.parse(tokens)
 
@@ -59,62 +59,52 @@ private final class JsonTokenizer {
         isInsideString = false
     }
     
-    func tokenize(_ filePath: String) -> [Token] {
+    func tokenize(_ data: Data) -> [Token] {
         
-        let file = fopen(filePath, "r")!
-        defer { fclose(file) }
-        let buffSize = 1_000_000
-        let buff = UnsafeMutableRawPointer.allocate(byteCount: buffSize, alignment: 1)
-        defer { buff.deallocate() }
+        let ptr = UnsafeMutableRawBufferPointer.allocate(byteCount: data.count, alignment: 1)
+        defer { ptr.deallocate() }
+        data.copyBytes(to: ptr)
         
-//        var dataIter = FileDataIterator(filePath: filePath)!
-//        while let char = dataIter.next() {
-
-        while true {
-            let numread = fread(buff, 1, buffSize, file)
-            if numread == 0 {
-                break
-            }
-            var i = 0; while i < numread { defer { i += 1 }
-                let char = buff.load(fromByteOffset: i, as: UInt8.self)
-                
-                if isInsideString {
-                    if char == TokenChar.stringEscape {
-                        isEscape = true
-                        continue // take next
-                    }
-                    if char == TokenChar.stringDelimiter {
-                        if isEscape {
-                            isEscape = false
-                            currentToken.append(char)
-                            continue
-                        }
-                        finalizeCurrentToken()
+        var i = 0; while i < data.count { defer { i += 1 }
+            
+            let char = ptr[i]
+            
+            if isInsideString {
+                if char == TokenChar.stringEscape {
+                    isEscape = true
+                    continue // take next
+                }
+                if char == TokenChar.stringDelimiter {
+                    if isEscape {
+                        isEscape = false
+                        currentToken.append(char)
                         continue
                     }
-                    currentToken.append(char)
-                    continue
-                }
-                
-                if TokenChar.isWhitespace(char) {
-                    continue
-                }
-                
-                if char == TokenChar.stringDelimiter {
-                    isInsideString = true
-                    continue
-                }
-                
-                if TokenChar.isDelimiter(char) {
-                    finalizeCurrentToken()
-                    // store the new delimiter token
-                    currentToken.append(char)
                     finalizeCurrentToken()
                     continue
                 }
-                
                 currentToken.append(char)
+                continue
             }
+            
+            if TokenChar.isWhitespace(char) {
+                continue
+            }
+            
+            if char == TokenChar.stringDelimiter {
+                isInsideString = true
+                continue
+            }
+            
+            if TokenChar.isDelimiter(char) {
+                finalizeCurrentToken()
+                // store the new delimiter token
+                currentToken.append(char)
+                finalizeCurrentToken()
+                continue
+            }
+            
+            currentToken.append(char)
         }
         
         finalizeCurrentToken()

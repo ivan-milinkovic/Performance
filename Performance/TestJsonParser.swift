@@ -8,21 +8,29 @@
 import Foundation
 
 /*
- Ticks:
- 2_957_556 - JsonParserUnicode
- 1_777_051 - JSONDecoder
- 1_472_220 - JsonParserBuffers
- 1_104_004 - JsonParserCChar - use chars instead of strings
-   938_272 - JsonParserCChar - avoid string concatenation
-   925_551 - JsonParserCChar - reserve capacity
-   835_231 - JsonParserFopen - use FileDataIterator - a buffered wrapper around fopen, fread to iterate
-   814_161 - JsonParserFopen - fopen, fread and buffering inline
-   176_323 - JSONSerialization - objective-c
+ JsonParserUnicode 2_343_682 ticks, 97.65ms
+ JsonParserAscii   2_339_993 ticks, 97.50ms
+ JSONDecoder       1_856_054 ticks, 77.34ms
+ JsonParserBuffers   941_253 ticks, 39.22ms
+ JsonParserFopen     818_944 ticks, 34.12ms
+ JsonParserCChar     817_413 ticks, 34.06ms
+ JSONSerialization   164_948 ticks,  6.87ms
+ 
+ (release configuration)
+ 
+ JsonParserCChar:
+ 1_104_004 - use chars instead of strings
+   938_272 - avoid string concatenation
+   925_551 - reserve capacity
+   877_290 - use BufferedDataReader
+   854_368 - copy all bytes from Data into a pointer memory
  
  high %:
+      Data iteration
+      String / Character
       Array allocations / resizing
       Double parsing (default checks locales)
-      String uses dynamically linked implementation, links to system library, DYLD-Stub
+      Swift uses dynamically linked implementations, links to system libraries, DYLD-Stub
  */
 
 func testJsonParser() {
@@ -31,73 +39,72 @@ func testJsonParser() {
     let jsonFile = "coords_10_000.json"
     let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
     
-//    do {
-//        let t0 = mach_absolute_time()
-//        var jsonString = try! String.init(contentsOf: inputFileUrl)
-//        jsonString.makeContiguousUTF8()
-//        let jsonParser = JsonParserUnicode()
-//        let _ = jsonParser.parse(jsonString: jsonString)
-//        let t1 = mach_absolute_time() - t0
-//        print("JsonParserUnicode", String(format: "%8d", t1))
-//        // 2_957_556 ticks release
-//    }
-//
-//    do {
-//        let t0 = mach_absolute_time()
-//        let data = try! Data(contentsOf: inputFileUrl)
-//        let jsonParser = JsonParserAscii()
-//        let _ = jsonParser.parse(data: data)
-//        let t1 = mach_absolute_time() - t0
-//        print("JsonParserAscii", String(format: "%8d", t1))
-//    }
-
     do {
-        let t0 = mach_absolute_time()
-        let data = try! Data(contentsOf: inputFileUrl)
-        let jsonParser = JsonParserCChar()
-        let _ = jsonParser.parse(data: data)
-        let t1 = mach_absolute_time() - t0
-        print("JsonParserCChar:", String(format: "%8d", t1))
-        // release:
-        // 1104004 ticks - use chars
-        //  938272 - avoid string concatenation
-        //  925551 - reserve capacity
+        var jsonString = try! String.init(contentsOf: inputFileUrl)
+        jsonString.makeContiguousUTF8()
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserUnicode()
+        let _ = jsonParser.parse(jsonString: jsonString)
+        Profiler.end(0)
+        print("JsonParserUnicode:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
 
-//    do {
-//        let t0 = mach_absolute_time()
-//        let jsonParser = JsonParserFopen()
-//        let _ = jsonParser.parse(filePath: inputFileUrl.path())
-//        let t1 = mach_absolute_time() - t0
-//        print("JsonParserFopen:", String(format: "%8d", t1))
-//        // 835_231 ticks release
-//    }
-//
-//    do {
-//        let t0 = mach_absolute_time()
-//        let jsonParser = JsonParserBuffers()
-//        let _ = jsonParser.parse(filePath: inputFileUrl.path())
-//        let t1 = mach_absolute_time() - t0
-//        print("JsonParserBuffers:", String(format: "%8d", t1))
-//        // 1_472_220 ticks release
-//    }
-//
-//    do {
-//        let t0 = mach_absolute_time()
-//        let data = try! Data.init(contentsOf: inputFileUrl)
-//        let _ = try! JSONDecoder().decode([[String:Double]].self, from: data)
-//        let t1 = mach_absolute_time() - t0
-//        print("jsondecoder:", String(format: "%8d", t1))
-//        // 1_777_051 ticks release
-//    }
-//
-//    do {
-//        let t0 = mach_absolute_time()
-//        let data = try! Data.init(contentsOf: inputFileUrl)
-//        let _ = try! JSONSerialization.jsonObject(with: data)
-//        let t1 = mach_absolute_time() - t0
-//        print("jsonserialization:", String(format: "%8d", t1))
-//        // 176_323 ticks release
-//    }
+    do {
+        let data = try! Data(contentsOf: inputFileUrl)
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserAscii()
+        let _ = jsonParser.parse(data: data)
+        Profiler.end(0)
+        print("JsonParserAscii:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
+
+    do {
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserFopen()
+        let _ = jsonParser.parse(filePath: inputFileUrl.path())
+        Profiler.end(0)
+        print("JsonParserFopen:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
+
+    do {
+        let data = try! Data(contentsOf: inputFileUrl)
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserCChar()
+        let _ = jsonParser.parse(data: data)
+        Profiler.end(0)
+        print("JsonParserCChar:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
+    
+    do {
+        let data = try! Data(contentsOf: inputFileUrl)
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserBuffers()
+        let _ = jsonParser.parse(data: data)
+        Profiler.end(0)
+        print("JsonParserBuffers:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
+
+    do {
+        let data = try! Data.init(contentsOf: inputFileUrl)
+        Profiler.reset()
+        Profiler.start(0)
+        let _ = try! JSONDecoder().decode([[String:Double]].self, from: data)
+        Profiler.end(0)
+        print("JSONDecoder:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
+
+    do {
+        let data = try! Data.init(contentsOf: inputFileUrl)
+        Profiler.reset()
+        Profiler.start(0)
+        let _ = try! JSONSerialization.jsonObject(with: data)
+        Profiler.end(0)
+        print("JSONSerialization:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
     
 }

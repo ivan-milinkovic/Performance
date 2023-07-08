@@ -146,44 +146,11 @@ func testDataIteration() {
         let data = try! Data(contentsOf: fileUrl)
         Profiler.reset()
         Profiler.start(0)
-        var dataReader = BufferedDataReader(data: data, buffSize: 1000)
+        var dataReader = BufferedDataReader(data: data, buffSize: 2000)
         while let byte = dataReader.next() {
             let _ = byte
         }
         Profiler.end(0)
         print("BufferedDataReader:", Profiler.ticks(0))
-    }
-}
-
-struct BufferedDataReader {
-    let data: Data
-    private let buffSize : Int
-    private var buffer : [UInt8]
-    private var i_data = 0 // whole data index counter
-    private var i_buff = 0 // current buffer index
-    
-    init(data: Data, buffSize: Int) {
-        self.data = data
-        self.buffSize = buffSize
-        buffer = [UInt8](repeating: 0, count: buffSize)
-        loadBuffer()
-    }
-    
-    private mutating func loadBuffer() {
-        if i_data >= data.count { return }
-        let upperBound = min(data.count, i_data + buffSize)
-        let range = i_data..<upperBound
-        data.copyBytes(to: &buffer, from: range)
-        i_buff = 0
-    }
-    
-    mutating func next() -> UInt8? {
-        if i_data >= data.count { return nil }
-        if i_buff >= buffSize { loadBuffer() }
-        defer {
-            i_data += 1
-            i_buff += 1
-        }
-        return buffer[i_buff]
     }
 }

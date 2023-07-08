@@ -57,8 +57,17 @@ private final class JsonTokenizer {
     
     func tokenize(_ data: Data) -> [Token] {
         
-        var dataIter = data.makeIterator()
-        while let char = dataIter.next() {
+//        var dataIter = data.makeIterator()
+//        while let char = dataIter.next() {
+        
+//        var dataIter = BufferedDataReader(data: data, buffSize: data.count)
+//        while let char = dataIter.next() {
+//
+        let ptr = UnsafeMutableRawBufferPointer.allocate(byteCount: data.count, alignment: 1)
+        defer { ptr.deallocate() }
+        data.copyBytes(to: ptr)
+        var i = 0; while i < data.count { defer { i += 1 }
+            let char = ptr[i]
             
             if isInsideString {
                 if char == TokenChar.stringEscape {
