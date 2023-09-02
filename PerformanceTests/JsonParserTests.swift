@@ -9,17 +9,21 @@ import XCTest
 
 final class JsonParserTests: XCTestCase {
     
-    var jsonParser : JsonParserUnicode!
+//    var jsonParser : JsonParserUnicode!
+    var jsonParser : JsonParserIndexes!
     
     override func setUp() async throws {
-        jsonParser = JsonParserUnicode()
+//        jsonParser = JsonParserUnicode()
+        jsonParser = JsonParserIndexes()
     }
     
     override func tearDown() async throws {
         jsonParser = nil
     }
     
-    func testSingleValueLiteral() throws {
+    let makeData: (String) -> Data = { $0.data(using: .utf8)! }
+    
+    func testSpecialCases() throws {
         var result : Any
         
         result = jsonParser.parse(jsonString: "123.234")
@@ -51,6 +55,9 @@ final class JsonParserTests: XCTestCase {
         
         result = jsonParser.parse(jsonString: "FALSE")
         XCTAssertEqual(result as? Bool, false)
+        
+        result = jsonParser.parse(jsonString: " ")
+        XCTAssertEqual(result as? NSNull, NSNull())
     }
     
     func testMap() throws {
@@ -158,9 +165,44 @@ final class JsonParserTests: XCTestCase {
         XCTAssertEqual(map["key3"] as? NSNull, NSNull())
     }
     
-    func testNoValue() throws {
-        let result = jsonParser.parse(jsonString: " ")
-        XCTAssertEqual(result as? NSNull, NSNull())
+    func testParseDouble() {
+        var result: Double?
+        
+        result = tryMakeDouble(startIndex: 0, length: 3, data: makeData("123"))
+        XCTAssertEqual(result, 123.0)
+        
+        result = tryMakeDouble(startIndex: 0, length: 7, data: makeData("123.234"))
+        XCTAssertEqual(result, 123.234)
+        
+        result = tryMakeDouble(startIndex: 0, length: 8, data: makeData("-123.234"))
+        XCTAssertEqual(result, -123.234)
+        
+        result = tryMakeDouble(startIndex: 0, length: 4, data: makeData("234."))
+        XCTAssertEqual(result, 234.0)
+        
+        result = tryMakeDouble(startIndex: 0, length: 4, data: makeData(".234"))
+        XCTAssertEqual(result, 0.234)
+        
+        result = tryMakeDouble(startIndex: 0, length: 1, data: makeData(""))
+        XCTAssertNil(result)
+        
+        result = tryMakeDouble(startIndex: 0, length: 1, data: makeData(" "))
+        XCTAssertNil(result)
+        
+        result = tryMakeDouble(startIndex: 0, length: 2, data: makeData(" #"))
+        XCTAssertNil(result)
+        
+        result = tryMakeDouble(startIndex: 0, length: 3, data: makeData("12#"))
+        XCTAssertNil(result)
+        
+        result = tryMakeDouble(startIndex: 0, length: 3, data: makeData("1#2"))
+        XCTAssertNil(result)
+        
+        result = tryMakeDouble(startIndex: 0, length: 6, data: makeData("12.#23"))
+        XCTAssertNil(result)
+        
+        result = tryMakeDouble(startIndex: 0, length: 6, data: makeData("12.#23"))
+        XCTAssertNil(result)
     }
     
 //    func testPerformanceExample() throws {

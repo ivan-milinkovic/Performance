@@ -33,6 +33,8 @@
 		2CC8C1DA2A46474200EFF8EF /* JsonParserUnicode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CF02A3C3D32006CFE4B /* JsonParserUnicode.swift */; };
 		2CC8C1DB2A4648C500EFF8EF /* JsonParserAscii.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC8C1D62A46468100EFF8EF /* JsonParserAscii.swift */; };
 		2CC8C1DE2A464DAD00EFF8EF /* SwiftSpeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC8C1DD2A464DAD00EFF8EF /* SwiftSpeed.swift */; };
+		2CCA0BD92AA373BD00F67581 /* JsonParserIndexes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA0BD82AA372D400F67581 /* JsonParserIndexes.swift */; };
+		2CCA0BDA2AA3979D00F67581 /* JsonParserIndexes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA0BD82AA372D400F67581 /* JsonParserIndexes.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -74,6 +76,7 @@
 		2CBE79C52A3063180016B8C9 /* globals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = globals.swift; sourceTree = "<group>"; };
 		2CC8C1D62A46468100EFF8EF /* JsonParserAscii.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserAscii.swift; sourceTree = "<group>"; };
 		2CC8C1DD2A464DAD00EFF8EF /* SwiftSpeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftSpeed.swift; sourceTree = "<group>"; };
+		2CCA0BD82AA372D400F67581 /* JsonParserIndexes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserIndexes.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -146,9 +149,10 @@
 				2C880CF02A3C3D32006CFE4B /* JsonParserUnicode.swift */,
 				2CC8C1D62A46468100EFF8EF /* JsonParserAscii.swift */,
 				2C286F282A59923E008B76A1 /* JsonParserValues.swift */,
+				2C8E71D82A48CA560004CDDD /* JsonParserBuffers.swift */,
 				2C8E71D62A483B4B0004CDDD /* JsonParserFopen.swift */,
 				2C8E71D42A46FFE20004CDDD /* JsonParserCChar.swift */,
-				2C8E71D82A48CA560004CDDD /* JsonParserBuffers.swift */,
+				2CCA0BD82AA372D400F67581 /* JsonParserIndexes.swift */,
 			);
 			path = JsonParser;
 			sourceTree = "<group>";
@@ -259,6 +263,7 @@
 				2CC8C1D92A46474100EFF8EF /* JsonParserUnicode.swift in Sources */,
 				2CBE79992A2BB6240016B8C9 /* cleancode.swift in Sources */,
 				2C8E71D72A483B560004CDDD /* JsonParserFopen.swift in Sources */,
+				2CCA0BD92AA373BD00F67581 /* JsonParserIndexes.swift in Sources */,
 				2CC8C1DB2A4648C500EFF8EF /* JsonParserAscii.swift in Sources */,
 				2C228BF22A463EA400D18786 /* TestIterSpeed.swift in Sources */,
 				2C6EEAC52A2A83F200EF3BDA /* main.swift in Sources */,
@@ -286,6 +291,7 @@
 				2CC8C1DA2A46474200EFF8EF /* JsonParserUnicode.swift in Sources */,
 				2CBE79C32A3062CE0016B8C9 /* util.swift in Sources */,
 				2CBE79C22A3062BD0016B8C9 /* cpu8086.swift in Sources */,
+				2CCA0BDA2AA3979D00F67581 /* JsonParserIndexes.swift in Sources */,
 				2CBE79BE2A3060440016B8C9 /* PerformanceTests.swift in Sources */,
 				2C880CF62A3DBA79006CFE4B /* JsonParserTests.swift in Sources */,
 			);

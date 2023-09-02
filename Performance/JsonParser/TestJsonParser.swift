@@ -18,6 +18,7 @@ import OSLog
  JsonParserBuffers    941_253 ticks, 39.22ms
  JsonParserFopen      818_944 ticks, 34.12ms
  JsonParserCChar      817_413 ticks, 34.06ms
+ JsonParserIndexes    551_571 ticks, 22.98ms
  JSONSerialization    164_948 ticks,  6.87ms
  
  
@@ -42,6 +43,16 @@ func testJsonParser() {
     let jsonFile = "coords_10_000.json"
     let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
     let signposter = OSSignposter()
+    
+    do {
+        let data = try! Data(contentsOf: inputFileUrl)
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserIndexes()
+        let _ = jsonParser.parse(data: data)
+        Profiler.end(0)
+        print("JsonParserIndexes:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
     
     do {
         var jsonString = try! String.init(contentsOf: inputFileUrl)

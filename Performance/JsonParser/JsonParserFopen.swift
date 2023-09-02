@@ -218,7 +218,7 @@ private class LiteralParser {
                 if    (chars[0] == 70 /*F*/ || chars[0] == 102) /*f*/
                    && (chars[1] == 65 /*A*/ || chars[1] == 97) /*a*/
                    && (chars[2] == 76 /*L*/ || chars[2] == 108) /*l*/
-                   && (chars[3] == 83 /*S*/ || chars[3] == 105) /*s*/
+                   && (chars[3] == 83 /*S*/ || chars[3] == 115) /*s*/
                    && (chars[4] == 69 /*E*/ || chars[4] == 101) /*e*/
                 {
                     itokens.append(.literalValue(.bool(false)))

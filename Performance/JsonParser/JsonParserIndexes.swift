@@ -1,42 +1,50 @@
 import Foundation
 
-final class JsonParserCChar {
+final class JsonParserIndexes {
 
     func parse(data: Data) -> Any {
         
         let tokenizer = JsonTokenizer()
         let tokens = tokenizer.tokenize(data)
         
-        let ltokens = LiteralParser.parse(tokens)
+        let ltokens = LiteralParser.parse(tokens, sourceData: data)
         
         let collectionParser = CollectionParser()
         let result = collectionParser.parse(ltokens)
 
         return result
     }
+    
+    func parse(jsonString str: String) -> Any {
+        parse(data: str.data(using: .utf8)!)
+    }
 }
 
 private struct Token {
-    let value: [CUChar]
-    let isString: Bool
-    init(value: [CUChar], isString: Bool = false) {
-        self.value = value
+    var index : Int
+    var length : Int
+    var isString: Bool
+    
+    init(index : Int, length : Int, isString: Bool = false) {
+        self.index = index
+        self.length = length
         self.isString = isString
     }
 }
 
-extension Token: CustomStringConvertible {
-    var description: String {
-        let vals = value.map { Unicode.Scalar(UInt32($0)) }
-        return "\(vals) isstr: \(isString)"
+extension Token {
+    func desc(_ data: Data) -> String {
+        let bytes = data[index..<index + length]
+        let str = String(data: bytes, encoding: .utf8)!
+        return "<\(str)>\(isString ? "s" : "")"
     }
 }
 
 private final class JsonTokenizer {
     
     var tokens = [Token]()
-    var currentToken = [CUChar]()
-    var isInsideString = false // don't tokenize special chars inside a string, keep whitespaces, check for escapes
+    var currentToken = Token(index: 0, length: 0)
+    var isInsideString = false // checks for escapes and ignores json chars so not to close a string early
     var isEscape = false
     
     init() {
@@ -45,78 +53,83 @@ private final class JsonTokenizer {
     
     private func reset() {
         tokens = [Token]()
-        resetCurrentToken()
+        resetCurrentToken(nextDataIndex: 0)
         isInsideString = false
         isEscape = false
     }
     
-    private func resetCurrentToken() {
-        currentToken = [CUChar]()
+    private func resetCurrentToken(nextDataIndex: Int) {
+        currentToken = Token(index: nextDataIndex, length: 0)
         isInsideString = false
     }
     
     func tokenize(_ data: Data) -> [Token] {
         
-//        var dataIter = data.makeIterator()
-//        while let char = dataIter.next() {
-        
-//        var dataIter = BufferedDataReader(data: data, buffSize: data.count)
-//        while let char = dataIter.next() {
-//
         let ptr = UnsafeMutableRawBufferPointer.allocate(byteCount: data.count, alignment: 1)
         defer { ptr.deallocate() }
         data.copyBytes(to: ptr)
+        
         var i = 0; while i < data.count { defer { i += 1 }
             let char = ptr[i]
             
             if isInsideString {
                 if char == TokenChar.stringEscape {
                     isEscape = true
+                    currentToken.length += 1
                     continue // take next
                 }
                 if char == TokenChar.stringDelimiter {
                     if isEscape {
                         isEscape = false
-                        currentToken.append(char)
+                        currentToken.length += 1
                         continue
                     }
-                    finalizeCurrentToken()
+                    currentToken.length += 1
+                    finalizeCurrentToken(i)
                     continue
                 }
-                currentToken.append(char)
+                currentToken.length += 1
                 continue
             }
             
             if TokenChar.isWhitespace(char) {
+                if currentToken.length == 0 {
+                    currentToken.index += 1
+                } else {
+                    finalizeCurrentToken(i)
+                }
                 continue
             }
             
             if char == TokenChar.stringDelimiter {
                 isInsideString = true
+                currentToken.length += 1
                 continue
             }
             
             if TokenChar.isDelimiter(char) {
-                finalizeCurrentToken()
-                tokens.append(Token(value: [char])) // store the new delimiter token
+                finalizeCurrentToken(i)
+                currentToken.index = i // reset the i + 1 done in finalize
+                currentToken.length = 1 // store the new delimiter token
+                finalizeCurrentToken(i)
                 continue
             }
             
-            currentToken.append(char)
+            currentToken.length += 1
         }
         
-        finalizeCurrentToken()
+        finalizeCurrentToken(i)
         let result = tokens
-        reset()
+        reset() // reset parser to be re-used
         return result
     }
     
-    private func finalizeCurrentToken() {
-        if !currentToken.isEmpty {
-            currentToken.append(0)
-            tokens.append(Token(value: currentToken, isString: isInsideString))
+    private func finalizeCurrentToken(_ i: Int) {
+        if currentToken.length > 0 {
+            currentToken.isString = isInsideString
+            tokens.append(currentToken)
         }
-        resetCurrentToken()
+        resetCurrentToken(nextDataIndex: i + 1)
     }
 }
 
@@ -158,13 +171,13 @@ private struct TokenChar {
 
 private class LiteralParser {
 
-    static func parse(_ tokens: [Token]) -> [LiteralToken] {
+    static func parse(_ tokens: [Token], sourceData data: Data) -> [LiteralToken] {
         
         var itokens = [LiteralToken]()
         for token in tokens {
             
-            if token.value.count == 1 {
-                let char = Array(token.value)[0]
+            if token.length == 1 {
+                let char = data[token.index]
                 switch char {
                 case TokenChar.mapOpen:     itokens.append(.mapOpen)
                 case TokenChar.mapClose:    itokens.append(.mapClose)
@@ -178,30 +191,29 @@ private class LiteralParser {
             }
             
             if token.isString {
-                let str = String(cString: token.value)
+                let tokenData = data[(token.index+1)..<(token.index + token.length - 1)] // +-1 to ignore opening closing quotes "
+                let str = String(data: tokenData, encoding: .utf8)!
                 itokens.append(.literalValue(.string(str)))
                 continue
             }
             
-            let chars = token.value
-            
-            if chars.count == 4+1 { // +1 for 0 terminated
+            if token.length == 4 {
                 
                 // check true
-                if    (chars[0] == 84 /*T*/ || chars[0] == 116) /*t*/
-                   && (chars[1] == 82 /*R*/ || chars[1] == 114) /*r*/
-                   && (chars[2] == 85 /*U*/ || chars[2] == 117) /*u*/
-                   && (chars[3] == 69 /*E*/ || chars[3] == 101) /*e*/
+                if    (data[token.index + 0] == 84 /*T*/ || data[token.index + 0] == 116) /*t*/
+                   && (data[token.index + 1] == 82 /*R*/ || data[token.index + 1] == 114) /*r*/
+                   && (data[token.index + 2] == 85 /*U*/ || data[token.index + 2] == 117) /*u*/
+                   && (data[token.index + 3] == 69 /*E*/ || data[token.index + 3] == 101) /*e*/
                 {
                     itokens.append(.literalValue(.bool(true)))
                     continue
                 }
                 
                 // check null
-                if    (chars[0] == 78 /*N*/ || chars[0] == 110) /*n*/
-                   && (chars[1] == 85 /*U*/ || chars[1] == 117) /*u*/
-                   && (chars[2] == 76 /*L*/ || chars[2] == 108) /*l*/
-                   && (chars[3] == 76 /*L*/ || chars[3] == 108) /*l*/
+                if    (data[token.index + 0] == 78 /*N*/ || data[token.index + 0] == 110) /*n*/
+                   && (data[token.index + 1] == 85 /*U*/ || data[token.index + 1] == 117) /*u*/
+                   && (data[token.index + 2] == 76 /*L*/ || data[token.index + 2] == 108) /*l*/
+                   && (data[token.index + 3] == 76 /*L*/ || data[token.index + 3] == 108) /*l*/
                 {
                     itokens.append(.literalValue(.null(NSNull())))
                     continue
@@ -210,29 +222,93 @@ private class LiteralParser {
             }
             
             // check false
-            if chars.count == 5+1 { // +1 for 0 terminated
-                if    (chars[0] == 70 /*F*/ || chars[0] == 102) /*f*/
-                   && (chars[1] == 65 /*A*/ || chars[1] == 97) /*a*/
-                   && (chars[2] == 76 /*L*/ || chars[2] == 108) /*l*/
-                   && (chars[3] == 83 /*S*/ || chars[3] == 115) /*s*/
-                   && (chars[4] == 69 /*E*/ || chars[4] == 101) /*e*/
+            if token.length == 5 {
+                if    (data[token.index + 0] == 70 /*F*/ || data[token.index + 0] == 102) /*f*/
+                   && (data[token.index + 1] == 65 /*A*/ || data[token.index + 1] ==  97) /*a*/
+                   && (data[token.index + 2] == 76 /*L*/ || data[token.index + 2] == 108) /*l*/
+                   && (data[token.index + 3] == 83 /*S*/ || data[token.index + 3] == 115) /*s*/
+                   && (data[token.index + 4] == 69 /*E*/ || data[token.index + 4] == 101) /*e*/
                 {
                     itokens.append(.literalValue(.bool(false)))
                     continue
                 }
             }
             
-            let str = String(cString: token.value)
-            if let number = Double(str) {
+            if let number = tryMakeDouble(startIndex: token.index, length:token.length, data: data) {
                 itokens.append(.literalValue(.number(number)))
                 continue
             }
             
-            fatalError("Unexpected value: \(token.value)")
+            let str = String(data: data[token.index..<(token.index + token.length)], encoding: .utf8)!
+            fatalError("Unexpected value: \(str)")
         }
         return itokens
     }
+}
+
+func tryMakeDouble(startIndex: Int, length: Int, data: Data) -> Double? {
+    // ascii:
+    // 48: 0
+    // 57: 9
+    // 46: .
+    // 43: +
+    // 45: -
     
+    if length == 0 || data.isEmpty || (startIndex + length) > data.count {
+        return nil
+    }
+    
+    var hasDecimalPart = false
+    
+    var num: Double = 0.0
+    
+    // integer part
+    
+    let byte = data[startIndex]
+    let hasMinus = (byte == 45)
+    let hasPlus = (byte == 43)
+    let startOffset = (hasMinus || hasPlus) ? 1 : 0
+    let endIndex = startIndex + length
+    
+    var j = (startIndex+startOffset); while j < endIndex { defer { j += 1 }
+        let byte = data[j]
+        
+        if byte == 46 {
+            hasDecimalPart = true
+            break
+        }
+        
+        if byte < 48 || byte > 57 {
+            return nil
+        }
+        
+        let digit = byte - 48
+        num = num * 10 + Double(digit)
+    }
+    
+    if hasDecimalPart {
+        
+        var decimalPart: Double = 0.0
+        
+        var k = j; while k < endIndex { defer { k += 1 }
+            let byte = data[k]
+            
+            if byte < 48 || byte > 57 {
+                return nil
+            }
+            
+            let digit = byte - 48
+            let expo = pow(10.0, Double(k-j+1))
+            decimalPart += Double(digit) / expo
+        }
+        num += decimalPart
+    }
+    
+    if hasMinus {
+        num *= -1
+    }
+    
+    return num
 }
 
 private enum LiteralToken {
@@ -431,3 +507,8 @@ private class JsonArray {
     var value = [Any]()
 }
 
+extension UInt8 {
+    var ascii: String {
+        String(cString: [self, 0])
+    }
+}
