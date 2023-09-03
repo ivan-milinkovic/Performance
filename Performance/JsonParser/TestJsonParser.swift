@@ -34,7 +34,8 @@ import OSLog
  
  JsonParserIndexes:
    514_022 ticks, 21.42ms - use indexes into original data instead of copying data chunks into tokens (moving from JsonParserCChar)
-   486_076 ticks, 20.25ms - use Array.reserveCapacity
+   486_076 ticks, 20.25ms - use Array.reserveCapacity(20)
+   445_691 ticks, 18.57ms - use Array.reserveCapacity(5)
  
  
  high %:

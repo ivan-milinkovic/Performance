@@ -20,6 +20,8 @@ final class JsonParserIndexes {
     }
 }
 
+let reservedCapacity = 5
+
 private struct Token {
     var index : Int
     var length : Int
@@ -53,7 +55,7 @@ private final class JsonTokenizer {
     
     private func reset() {
         tokens = [Token]()
-        tokens.reserveCapacity(20)
+        tokens.reserveCapacity(reservedCapacity)
         resetCurrentToken(nextDataIndex: 0)
         isInsideString = false
         isEscape = false
@@ -175,7 +177,7 @@ private class LiteralParser {
     static func parse(_ tokens: [Token], sourceData data: Data) -> [LiteralToken] {
         
         var itokens = [LiteralToken]()
-        itokens.reserveCapacity(20)
+        itokens.reserveCapacity(reservedCapacity)
         
         for token in tokens {
             
@@ -379,7 +381,7 @@ private class CollectionParser {
     
     private func reset() {
         stack = Stack<JsonCollection>()
-        stack.reserveCapacity(20)
+        stack.reserveCapacity(reservedCapacity)
         result = NSNull()
     }
     
@@ -477,7 +479,7 @@ private class JsonMap {
     var key: String?
     
     init() {
-        value.reserveCapacity(20)
+        value.reserveCapacity(reservedCapacity)
     }
     
     var isComplete: Bool {
@@ -514,7 +516,7 @@ private class JsonMap {
 private class JsonArray {
     var value = [Any]()
     init() {
-        value.reserveCapacity(20)
+        value.reserveCapacity(reservedCapacity)
     }
 }
 
