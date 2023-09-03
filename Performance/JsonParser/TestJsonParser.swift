@@ -12,22 +12,30 @@ import OSLog
  coords_10_000.json release
  
  JsonParserValues: 12_616_383 ticks, 525.68ms
- JsonParserUnicode  2_343_682 ticks, 97.65ms
- JsonParserAscii    2_339_993 ticks, 97.50ms
- JSONDecoder        1_856_054 ticks, 77.34ms
- JsonParserBuffers    941_253 ticks, 39.22ms
- JsonParserFopen      818_944 ticks, 34.12ms
- JsonParserCChar      817_413 ticks, 34.06ms
- JsonParserIndexes    551_571 ticks, 22.98ms
- JSONSerialization    164_948 ticks,  6.87ms
+ JsonParserUnicode  2_343_682 ticks,  97.65ms
+ JsonParserAscii    2_339_993 ticks,  97.50ms
+ JSONDecoder        1_856_054 ticks,  77.34ms
+ JsonParserBuffers    941_253 ticks,  39.22ms
+ JsonParserFopen      818_944 ticks,  34.12ms
+ JsonParserCChar      817_413 ticks,  34.06ms
+ JsonParserIndexes    514_022 ticks,  21.42ms
+ JSONSerialization    164_948 ticks,   6.87ms
  
+ 
+ JsonParserUnicode:
+ 2_343_682 ticks, 97.65ms - use native swift data structures freely
  
  JsonParserCChar:
- 1_104_004 - use chars instead of strings
+ 1_104_004 - use chars instead of strings (moving from JsonParserUnicode)
    938_272 - avoid string concatenation
    925_551 - reserve capacity
    877_290 - use BufferedDataReader
    854_368 - copy all bytes from Data into a pointer memory
+ 
+ JsonParserIndexes:
+   514_022 ticks, 21.42ms - use indexes into original data instead of copying data chunks into tokens (moving from JsonParserCChar)
+   486_076 ticks, 20.25ms - use Array.reserveCapacity
+ 
  
  high %:
       Data iteration
@@ -53,6 +61,7 @@ func testJsonParser() {
         Profiler.end(0)
         print("JsonParserIndexes:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
+    return;
     
     do {
         var jsonString = try! String.init(contentsOf: inputFileUrl)

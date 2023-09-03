@@ -100,6 +100,10 @@ extension Data {
 class Stack<T> {
     private var contents = [T]()
     
+    func reserveCapacity(_ cap: Int) {
+        contents.reserveCapacity(cap)
+    }
+    
     func push(_ val: T) {
         contents.append(val)
     }
