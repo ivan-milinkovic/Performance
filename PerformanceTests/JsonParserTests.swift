@@ -203,12 +203,18 @@ final class JsonParserTests: XCTestCase {
         
         result = tryMakeDouble(startIndex: 0, length: 6, data: makeData("12.#23"))
         XCTAssertNil(result)
+        
+        result = tryMakeDouble2(startIndex: 0, length: 6, data: makeData("12..23"))
+        XCTAssertNil(result)
     }
     
-//    func testPerformanceExample() throws {
-//        self.measure {
-//
-//        }
-//    }
+    func testParseDoublePerformance() throws {
+        self.measure {
+            var result: Double?
+            
+            result = tryMakeDouble(startIndex: 0, length: 11, data: makeData("12345.23456"))
+            XCTAssertEqual(result, 12345.23456)
+        }
+    }
 
 }
