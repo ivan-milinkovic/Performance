@@ -37,6 +37,7 @@
 		2CCA0BDA2AA3979D00F67581 /* JsonParserIndexes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA0BD82AA372D400F67581 /* JsonParserIndexes.swift */; };
 		2CCA9C102AA4C90600344BFD /* ParseDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA9C0F2AA4C90600344BFD /* ParseDouble.swift */; };
 		2CCA9C112AA4CAB600344BFD /* ParseDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA9C0F2AA4C90600344BFD /* ParseDouble.swift */; };
+		2CEE8F822AA9D67C00A55F7A /* JsonParserObjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -80,6 +81,9 @@
 		2CC8C1DD2A464DAD00EFF8EF /* SwiftSpeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftSpeed.swift; sourceTree = "<group>"; };
 		2CCA0BD82AA372D400F67581 /* JsonParserIndexes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserIndexes.swift; sourceTree = "<group>"; };
 		2CCA9C0F2AA4C90600344BFD /* ParseDouble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseDouble.swift; sourceTree = "<group>"; };
+		2CEE8F7F2AA9D67C00A55F7A /* Performance-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Performance-Bridging-Header.h"; sourceTree = "<group>"; };
+		2CEE8F802AA9D67C00A55F7A /* JsonParserObjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JsonParserObjc.h; sourceTree = "<group>"; };
+		2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JsonParserObjc.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +135,7 @@
 				2C286F242A596A3B008B76A1 /* Profiler.swift */,
 				2CBE79C52A3063180016B8C9 /* globals.swift */,
 				2C6EEACD2A2B9CBB00EF3BDA /* util.swift */,
+				2CEE8F7F2AA9D67C00A55F7A /* Performance-Bridging-Header.h */,
 			);
 			path = Performance;
 			sourceTree = "<group>";
@@ -157,6 +162,8 @@
 				2C8E71D42A46FFE20004CDDD /* JsonParserCChar.swift */,
 				2CCA0BD82AA372D400F67581 /* JsonParserIndexes.swift */,
 				2CCA9C0F2AA4C90600344BFD /* ParseDouble.swift */,
+				2CEE8F802AA9D67C00A55F7A /* JsonParserObjc.h */,
+				2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */,
 			);
 			path = JsonParser;
 			sourceTree = "<group>";
@@ -223,6 +230,7 @@
 				TargetAttributes = {
 					2C6EEAC02A2A83F200EF3BDA = {
 						CreatedOnToolsVersion = 14.3;
+						LastSwiftMigration = 1430;
 					};
 					2CBE79BA2A3060440016B8C9 = {
 						CreatedOnToolsVersion = 14.3;
@@ -272,6 +280,7 @@
 				2CC8C1DB2A4648C500EFF8EF /* JsonParserAscii.swift in Sources */,
 				2C228BF22A463EA400D18786 /* TestIterSpeed.swift in Sources */,
 				2C6EEAC52A2A83F200EF3BDA /* main.swift in Sources */,
+				2CEE8F822AA9D67C00A55F7A /* JsonParserObjc.m in Sources */,
 				2C286F252A596A3B008B76A1 /* Profiler.swift in Sources */,
 				2C8E71D92A48CA6D0004CDDD /* JsonParserBuffers.swift in Sources */,
 				2C286F272A59741D008B76A1 /* TestDataIteration.swift in Sources */,
@@ -422,8 +431,11 @@
 		2C6EEAC92A2A83F200EF3BDA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Performance/Performance-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -431,8 +443,10 @@
 		2C6EEACA2A2A83F200EF3BDA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Performance/Performance-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
