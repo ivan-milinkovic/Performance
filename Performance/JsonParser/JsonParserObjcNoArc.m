@@ -1,7 +1,9 @@
-#import "JsonParserObjc.h"
+#import "JsonParserObjcNoArc.h"
 #import "Shared.h"
 
-@interface Token : NSObject
+
+
+@interface NAToken : NSObject
 {
     @public
     
@@ -18,7 +20,7 @@
 
 @end
 
-@implementation Token
+@implementation NAToken
 
 - (instancetype)initWithIndex: (int) index
                        length: (int) length
@@ -40,7 +42,7 @@
 
 @end
 
-@interface JsonMap: NSObject
+@interface NAJsonMap: NSObject
 {
     @public
     NSMutableDictionary * value;
@@ -51,7 +53,7 @@
 - (id) value;
 @end
 
-@implementation JsonMap
+@implementation NAJsonMap
 
 - (instancetype) init {
     self = [super init];
@@ -85,32 +87,30 @@
 @end
 
 
-@interface NSMutableArray (Ext)
-@end
+// implementation comes from the other file
+//@interface NSMutableArray (NAExt)
+//@end
+//
+//@implementation NSMutableArray (NAExt)
+//- (id) value {
+//    return self;
+//}
+//
+//- (void) consume: (__unsafe_unretained id) newValue
+//{
+//    [self addObject: newValue];
+//}
+//
+//- (bool) isComplete {
+//    return true;
+//}
+//@end
 
-@implementation NSMutableArray (Ext)
 
-- (id) value {
-    return self;
-}
-
-- (void) consume: (__unsafe_unretained id) newValue
+@interface JsonParserObjcNoArc ()
 {
-    [self addObject: newValue];
-}
-
-- (bool) isComplete {
-    return true;
-}
-
-
-@end
-
-
-@interface JsonParserObjc ()
-{
-    NSMutableArray<Token*>* tokens;
-    Token* currentToken;
+    NSMutableArray<NAToken*>* tokens;
+    NAToken* currentToken;
     bool isInsideString;
     bool isEscape;
     NSMutableArray * stack;
@@ -119,7 +119,7 @@
 
 @end
 
-@implementation JsonParserObjc
+@implementation JsonParserObjcNoArc
 
 - (instancetype)init {
     self = [super init];
@@ -145,7 +145,7 @@
 }
 
 - (void) resetCurrentTokenWithIndex: (int) i {
-    currentToken = [[Token alloc] initWithIndex:i length:0 isString:false];
+    currentToken = [[NAToken alloc] initWithIndex:i length:0 isString:false];
     isInsideString = false;
 }
 
@@ -169,7 +169,7 @@
 
 - (void) printTokens:(NSData *) data {
     const char* const bytes = data.bytes;
-    for(Token * token in tokens) {
+    for(NAToken * token in tokens) {
         NSString * str = [[NSString alloc] initWithBytes:(bytes + token->index) length:token->length encoding: NSUTF8StringEncoding];
         NSLog(@"token: at: %d, %@", token->index, str);
     }
@@ -259,7 +259,7 @@
 - (void) parseLiterals: (__unsafe_unretained NSData*) data {
     const char* const bytes = data.bytes;
     for (int i=0; i<tokens.count; i++) {
-        Token* token = tokens[i];
+        NAToken* token = tokens[i];
         
         if (token->length == 1) {
             char c = bytes[token->index];
@@ -283,7 +283,7 @@
                     token->type = TokenType_ElementDelimiter;
                     break;
                 default: {
-                    NSNumber * number = [JsonParserObjc
+                    NSNumber * number = [JsonParserObjcNoArc
                                          tryMakeDoubleWithStartIndex: token->index
                                          length: token->length
                                          bytes: bytes];
@@ -368,7 +368,7 @@
 //        NSNumberFormatter * fmt = [NSNumberFormatter new];
 //        NSNumber * number = [fmt numberFromString: str];
         
-        NSNumber * number = [JsonParserObjc
+        NSNumber * number = [JsonParserObjcNoArc
                              tryMakeDoubleWithStartIndex: token->index
                              length: token->length
                              bytes: bytes];
@@ -449,7 +449,7 @@
     }
     
     if (tokens.count == 1) {
-        Token * token = tokens[0];
+        NAToken * token = tokens[0];
         TokenType type = token->type;
         switch (type) {
             case TokenType_Value_String:
@@ -465,7 +465,7 @@
     }
     
     for (int i=0; i<tokens.count; i++) {
-        Token * token = tokens[i];
+        NAToken * token = tokens[i];
         TokenType type = token->type;
         switch (type) {
             case TokenType_Unresolved: {
@@ -474,7 +474,7 @@
                 break;
             }
             case TokenType_MapOpen: {
-                [stack addObject: [JsonMap new]];
+                [stack addObject: [NAJsonMap new]];
                 break;
             }
             case TokenType_MapClose: {
