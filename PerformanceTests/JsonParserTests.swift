@@ -11,10 +11,12 @@ final class JsonParserTests: XCTestCase {
     
 //    var jsonParser : JsonParserUnicode!
     var jsonParser : JsonParserIndexes!
+//    var jsonParser : JsonParserObjc!
     
     override func setUp() async throws {
 //        jsonParser = JsonParserUnicode()
         jsonParser = JsonParserIndexes()
+//        jsonParser = JsonParserObjc()
     }
     
     override func tearDown() async throws {
@@ -123,6 +125,13 @@ final class JsonParserTests: XCTestCase {
         XCTAssertEqual(array[1] as? Double, 123)
         XCTAssertEqual(array[2] as? Bool, true)
         XCTAssertEqual(array[3] as? NSNull, NSNull())
+        
+        json = "[1,2]"
+        result = jsonParser.parse(jsonString: json)
+        array = try XCTUnwrap(result as? Array<Any>)
+        XCTAssertEqual(array.count, 2)
+        XCTAssertEqual(array[0] as? Double, 1)
+        XCTAssertEqual(array[1] as? Double, 2)
     }
     
     func testNested() throws {

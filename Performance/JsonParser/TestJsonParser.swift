@@ -15,6 +15,7 @@ import OSLog
  JsonParserUnicode  2_343_682 ticks,  97.65ms
  JsonParserAscii    2_339_993 ticks,  97.50ms
  JSONDecoder        1_856_054 ticks,  77.34ms
+ JsonParserObjc     1_386_492 ticks,  57.77ms
  JsonParserBuffers    941_253 ticks,  39.22ms
  JsonParserFopen      818_944 ticks,  34.12ms
  JsonParserCChar      817_413 ticks,  34.06ms
@@ -55,14 +56,27 @@ func testJsonParser() {
     
     do {
         let data = try! Data(contentsOf: inputFileUrl)
+        let state = signposter.beginInterval("JsonParserObjc")
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserObjc()
+        let _ = jsonParser.parse(data: data)
+        Profiler.end(0)
+        signposter.endInterval("JsonParserObjc", state)
+        print("JsonParserObjc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
+    
+    do {
+        let data = try! Data(contentsOf: inputFileUrl)
+        let state = signposter.beginInterval("JsonParserIndexes")
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserIndexes()
         let _ = jsonParser.parse(data: data)
         Profiler.end(0)
+        signposter.endInterval("JsonParserIndexes", state)
         print("JsonParserIndexes:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
-    return;
     
     do {
         var jsonString = try! String.init(contentsOf: inputFileUrl)

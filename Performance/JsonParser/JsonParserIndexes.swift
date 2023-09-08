@@ -157,10 +157,6 @@ private struct TokenChar {
     static let keyValueDelimiter = CUChar(58) // ":"
     static let elementDelimiter = CUChar(44) // ","
     
-    static let null = "null"
-    static let `true` = "true"
-    static let `false` = "false"
-    
     static func isWhitespace(_ char: CUChar) -> Bool {
         char == space || char == newline || char == carriage || char == tab
     }
@@ -190,7 +186,13 @@ private class LiteralParser {
                 case TokenChar.arrayClose:  itokens.append(.arrayClose)
                 case TokenChar.keyValueDelimiter:   itokens.append(.keyValueDelimiter)
                 case TokenChar.elementDelimiter:    itokens.append(.elementDelimiter)
-                default: fatalError("Uknown character: \(char)")
+                default:
+                    if let number = tryMakeDouble(startIndex: token.index, length:token.length, data: data) {
+                        itokens.append(.literalValue(.number(number)))
+                        continue
+                    } else {
+                        fatalError("Unexpected char: \(char)")
+                    }
                 }
                 continue
             }
@@ -425,19 +427,6 @@ private class JsonMap {
         if key == nil {
             guard let str = val as? String else {
                 fatalError("Invalid json, expected a key (a string), but got a \(type(of: val))")
-            }
-            key = str
-        }
-        else {
-            value[key!] = val
-            key = nil
-        }
-    }
-    
-    func consume(_ val: LiteralValue) {
-        if key == nil {
-            guard case .string(let str) = val else {
-                fatalError("Invalid json, expected a key (a string), but got a \(val.value)")
             }
             key = str
         }

@@ -5,6 +5,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface JsonParserObjc : NSObject
 
 - (id) parse:(NSData *) data NS_SWIFT_NAME(parse(data:));
+- (id) parseString:(NSString *) string NS_SWIFT_NAME(parse(jsonString:));
 
 @end
 

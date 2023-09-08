@@ -42,6 +42,7 @@ typedef NS_ENUM(short, TokenType) {
 }
 
 - (id)init NS_UNAVAILABLE;
+- (NSString*) desc:(char *)bytes;
 
 @end
 
@@ -59,6 +60,10 @@ typedef NS_ENUM(short, TokenType) {
     value = nil;
     
     return self;
+}
+
+- (NSString*) desc:(char *)bytes {
+    return [[NSString alloc] initWithBytes:(bytes + index) length:length encoding:NSUTF8StringEncoding];
 }
 
 @end
@@ -161,6 +166,11 @@ typedef NS_ENUM(short, TokenType) {
     isInsideString = false;
 }
 
+- (id) parseString:(NSString *) string {
+    NSData * data = [string dataUsingEncoding: NSUTF8StringEncoding];
+    return [self parse: data];
+}
+
 - (id) parse:(NSData *) data {
     
     [self prepare];
@@ -172,6 +182,14 @@ typedef NS_ENUM(short, TokenType) {
     id resultCopy = result;
     [self tearDown];
     return resultCopy;
+}
+
+- (void) printTokens:(NSData *) data {
+    const char* const bytes = data.bytes;
+    for(Token * token in tokens) {
+        NSString * str = [[NSString alloc] initWithBytes:(bytes + token->index) length:token->length encoding: NSUTF8StringEncoding];
+        NSLog(@"token: at: %d, %@", token->index, str);
+    }
 }
 
 - (void) tokenize: (NSData *) data {
@@ -281,40 +299,82 @@ typedef NS_ENUM(short, TokenType) {
                 case CHAR_ELEMENT_DELIMITER:
                     token->type = TokenType_ElementDelimiter;
                     break;
-                default:
-                    NSLog(@"Uknown character: %c", c);
-                    exit(EXIT_FAILURE);
+                default: {
+                    NSNumber * number = [JsonParserObjc
+                                         tryMakeDoubleWithStartIndex: token->index
+                                         length: token->length
+                                         bytes: bytes];
+                    
+                    if (number != nil) {
+                        token->value = number;
+                        token->type = TokenType_Value_Number;
+                    } else {
+                        NSLog(@"Unexpected char: %c", c);
+                        exit(EXIT_FAILURE);
+                    }
                     break;
+                }
             }
             continue;
         }
         
         if (token->isString) {
             token->value = [[NSString alloc]
-                            initWithBytes:(bytes + token->index)
-                            length:token->length
+                            initWithBytes:(bytes + token->index + 1)
+                            length:token->length - 2
                             encoding: NSUTF8StringEncoding];
             token->type = TokenType_Value_String;
             continue;
         }
         
         if (token->length == 4) {
-            if (0 == memcmp(bytes + token->index, "true", 4)) {
+//            if (0 == memcmp(bytes + token->index, "true", 4)) {
+//                token->value = [NSNumber numberWithBool:true];
+//                token->type = TokenType_Value_Bool;
+//            }
+//
+//            if (0 == memcmp(bytes + token->index, "null", 4)) {
+//                token->value = [NSNull null];
+//                token->type = TokenType_Value_Null;
+//            }
+            
+            if (    (bytes[token->index + 0] == 't' || bytes[token->index + 0] == 'T')
+                 && (bytes[token->index + 1] == 'r' || bytes[token->index + 1] == 'R')
+                 && (bytes[token->index + 2] == 'u' || bytes[token->index + 2] == 'U')
+                 && (bytes[token->index + 3] == 'e' || bytes[token->index + 3] == 'E'))
+            {
                 token->value = [NSNumber numberWithBool:true];
                 token->type = TokenType_Value_Bool;
             }
             
-            if (0 == memcmp(bytes + token->index, "null", 4)) {
+            if (    (bytes[token->index + 0] == 'n' || bytes[token->index + 0] == 'N')
+                 && (bytes[token->index + 1] == 'u' || bytes[token->index + 1] == 'U')
+                 && (bytes[token->index + 2] == 'l' || bytes[token->index + 2] == 'L')
+                 && (bytes[token->index + 3] == 'l' || bytes[token->index + 3] == 'L'))
+            {
                 token->value = [NSNull null];
                 token->type = TokenType_Value_Null;
             }
+            
+            continue;
         }
         
         if (token->length == 5) {
-            if (0 == memcmp(bytes + token->index, "false", 4)) {
+//            if (0 == memcmp(bytes + token->index, "false", 4)) {
+//                token->value = [NSNumber numberWithBool:false];
+//                token->type = TokenType_Value_Bool;
+//            }
+            
+            if (    (bytes[token->index + 0] == 'f' || bytes[token->index + 0] == 'F')
+                 && (bytes[token->index + 1] == 'a' || bytes[token->index + 1] == 'A')
+                 && (bytes[token->index + 2] == 'l' || bytes[token->index + 2] == 'L')
+                 && (bytes[token->index + 3] == 's' || bytes[token->index + 3] == 'S')
+                 && (bytes[token->index + 4] == 'e' || bytes[token->index + 4] == 'E'))
+            {
                 token->value = [NSNumber numberWithBool:false];
                 token->type = TokenType_Value_Bool;
             }
+            continue;
         }
         
         // parse double
@@ -333,7 +393,11 @@ typedef NS_ENUM(short, TokenType) {
         if (number != nil) {
             token->value = number;
             token->type = TokenType_Value_Number;
+            continue;
         }
+        
+        NSLog(@"Invalid token: %@, at index: %d", token->value, i);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -349,14 +413,16 @@ typedef NS_ENUM(short, TokenType) {
     bool hasMinus = byte == '-';
     bool hasPlus = byte == '+';
     int startOffset = (hasMinus || hasPlus) ? 1 : 0;
+    int endIndex = startIndex + length;
     
     int j = startIndex + startOffset;
-    for (; j<length; j++) {
+    for (; j<endIndex; j++) {
         
         char byte = bytes[j];
         
         if (byte == '.') {
             hasDecimalPart = true;
+            j++;
             break;
         }
         
@@ -372,7 +438,7 @@ typedef NS_ENUM(short, TokenType) {
         
         double decimalPart = 0.0;
         
-        for (int k=j; k<length; k++) {
+        for (int k=j; k<endIndex; k++) {
             char byte = bytes[k];
             if (byte < '0' || byte > '9') {
                 return nil;
@@ -456,8 +522,7 @@ typedef NS_ENUM(short, TokenType) {
             }
             case TokenType_ElementDelimiter:{
                 id current = stack.lastObject;
-                if (![current isMemberOfClass:JsonMap.class]
-                    || [current isKindOfClass:NSMutableArray.class]) {
+                if (!([current isMemberOfClass:JsonMap.class] || [current isKindOfClass:NSMutableArray.class])) {
                     NSLog(@"Found the element delimiter but there's no collection instance");
                     exit(EXIT_FAILURE);
                 }
@@ -484,8 +549,7 @@ typedef NS_ENUM(short, TokenType) {
 }
 
 - (void) mergeInto: (id) collection value: (id) newValue {
-    if (![collection isMemberOfClass:JsonMap.class]
-        || ![collection isKindOfClass:NSMutableArray.class]) {
+    if (!([collection isMemberOfClass:JsonMap.class] || [collection isKindOfClass:NSMutableArray.class])) {
         NSLog(@"Found a value but there's no collection instance");
         exit(EXIT_FAILURE);
     }

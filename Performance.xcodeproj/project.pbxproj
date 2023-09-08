@@ -38,6 +38,7 @@
 		2CCA9C102AA4C90600344BFD /* ParseDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA9C0F2AA4C90600344BFD /* ParseDouble.swift */; };
 		2CCA9C112AA4CAB600344BFD /* ParseDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA9C0F2AA4C90600344BFD /* ParseDouble.swift */; };
 		2CEE8F822AA9D67C00A55F7A /* JsonParserObjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */; };
+		2CEE8F832AAA35D200A55F7A /* JsonParserObjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -84,6 +85,7 @@
 		2CEE8F7F2AA9D67C00A55F7A /* Performance-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Performance-Bridging-Header.h"; sourceTree = "<group>"; };
 		2CEE8F802AA9D67C00A55F7A /* JsonParserObjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JsonParserObjc.h; sourceTree = "<group>"; };
 		2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JsonParserObjc.m; sourceTree = "<group>"; };
+		2CEE8F892AAA363E00A55F7A /* Performance-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Performance-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,6 +147,7 @@
 			children = (
 				2CBE79BD2A3060440016B8C9 /* PerformanceTests.swift */,
 				2C880CF52A3DBA79006CFE4B /* JsonParserTests.swift */,
+				2CEE8F892AAA363E00A55F7A /* Performance-Bridging-Header.h */,
 			);
 			path = PerformanceTests;
 			sourceTree = "<group>";
@@ -301,6 +304,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2CEE8F832AAA35D200A55F7A /* JsonParserObjc.m in Sources */,
 				2CBE79C72A3063330016B8C9 /* globals.swift in Sources */,
 				2CC8C1DA2A46474200EFF8EF /* JsonParserUnicode.swift in Sources */,
 				2CCA9C112AA4CAB600344BFD /* ParseDouble.swift in Sources */,
@@ -461,6 +465,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ivanmcode.PerformanceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "PerformanceTests/Performance-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -475,6 +480,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ivanmcode.PerformanceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "PerformanceTests/Performance-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
