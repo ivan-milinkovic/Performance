@@ -1,10 +1,3 @@
-//
-//  JsonParserTests.swift
-//  PerformanceTests
-//
-//  Created by Ivan Milinkovic on 17.6.23..
-//
-
 import XCTest
 
 final class JsonParserTests: XCTestCase {

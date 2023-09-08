@@ -1,10 +1,3 @@
-//
-//  SwiftSpeed.swift
-//  Performance
-//
-//  Created by Ivan Milinkovic on 24.6.23..
-//
-
 import Foundation
 
 func testSwiftSpeed() {

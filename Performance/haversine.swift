@@ -1,10 +1,3 @@
-//
-//  haversine.swift
-//  Performance
-//
-//  Created by Ivan Milinkovic on 3.6.23..
-//
-
 import Foundation
 
 //private let fileUrl = dataDirUrl.appending(path: "coords_1_000.json", directoryHint: URL.DirectoryHint.notDirectory)

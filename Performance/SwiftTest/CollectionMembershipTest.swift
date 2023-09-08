@@ -1,10 +1,3 @@
-//
-//  CollectionMembershipTest.swift
-//  Performance
-//
-//  Created by Ivan Milinkovic on 16.6.23..
-//
-
 import Foundation
 
 func testCollectionMembership() {

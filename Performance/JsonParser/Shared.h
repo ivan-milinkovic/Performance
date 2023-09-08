@@ -1,9 +1,3 @@
-//
-//  Shared.h
-//  Performance
-//
-//  Created by Ivan Milinkovic on 8.9.23..
-//
 
 #ifndef Shared_h
 #define Shared_h

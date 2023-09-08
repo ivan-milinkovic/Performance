@@ -1,10 +1,3 @@
-//
-//  Addition.swift
-//  Performance
-//
-//  Created by Ivan Milinkovic on 3.6.23..
-//
-
 import Foundation
 
 func add1(cnt: Int, array: [Int]) -> Int {

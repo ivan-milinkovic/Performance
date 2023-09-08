@@ -1,10 +1,3 @@
-//
-//  TestIterSpeed.swift
-//  Performance
-//
-//  Created by Ivan Milinkovic on 23.6.23..
-//
-
 import Foundation
 
 func testIterSpeed() {

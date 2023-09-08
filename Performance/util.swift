@@ -1,10 +1,3 @@
-//
-//  Util.swift
-//  Performance
-//
-//  Created by Ivan Milinkovic on 3.6.23..
-//
-
 import Foundation
 
 extension ContinuousClock.Instant.Duration {
