@@ -11,16 +11,17 @@ import OSLog
 /*
  coords_10_000.json release
  
- JsonParserValues: 12_616_383 ticks, 525.68ms
- JsonParserUnicode  2_343_682 ticks,  97.65ms
- JsonParserAscii    2_339_993 ticks,  97.50ms
- JSONDecoder        1_856_054 ticks,  77.34ms
- JsonParserObjc     1_080_941 ticks,  45.04ms
- JsonParserBuffers    941_253 ticks,  39.22ms
- JsonParserFopen      818_944 ticks,  34.12ms
- JsonParserCChar      817_413 ticks,  34.06ms
- JsonParserIndexes    514_022 ticks,  21.42ms
- JSONSerialization    164_948 ticks,   6.87ms
+ JsonParserValues:   12_616_383 ticks, 525.68ms
+ JsonParserUnicode    2_343_682 ticks,  97.65ms
+ JsonParserAscii      2_339_993 ticks,  97.50ms
+ JSONDecoder          1_856_054 ticks,  77.34ms
+ JsonParserObjc       1_080_941 ticks,  45.04ms
+ JsonParserObjcNoArc  1_000_709 ticks,  41.70ms
+ JsonParserBuffers      941_253 ticks,  39.22ms
+ JsonParserFopen        818_944 ticks,  34.12ms
+ JsonParserCChar        817_413 ticks,  34.06ms
+ JsonParserIndexes      514_022 ticks,  21.42ms
+ JSONSerialization      164_948 ticks,   6.87ms
  
  
  JsonParserUnicode:
@@ -71,7 +72,7 @@ func testJsonParser() {
         signposter.endInterval("JsonParserObjc", state)
         print("JsonParserObjc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
-    return;
+//    return;
     
     do {
         let data = try! Data(contentsOf: inputFileUrl)
@@ -83,6 +84,18 @@ func testJsonParser() {
         Profiler.end(0)
         signposter.endInterval("JsonParserIndexes", state)
         print("JsonParserIndexes:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
+    
+    do {
+        let data = try! Data(contentsOf: inputFileUrl)
+        let state = signposter.beginInterval("JsonParserObjcNoArc")
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserObjcNoArc()
+        let _ = jsonParser.parse(data: data)
+        Profiler.end(0)
+        signposter.endInterval("JsonParserObjcNoArc", state)
+        print("JsonParserObjcNoArc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
     
     do {

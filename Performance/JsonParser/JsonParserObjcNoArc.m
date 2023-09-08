@@ -17,6 +17,7 @@
 
 - (id)init NS_UNAVAILABLE;
 - (NSString*) desc:(char *)bytes;
+- (void) resetValue;
 
 @end
 
@@ -38,6 +39,17 @@
 
 - (NSString*) desc:(char *)bytes {
     return [[NSString alloc] initWithBytes:(bytes + index) length:length encoding:NSUTF8StringEncoding];
+}
+
+- (void) resetValue {
+    [value release];
+    value = nil;
+}
+
+- (oneway void) release {
+    [value release];
+    value = nil;
+    [super release];
 }
 
 @end
@@ -73,9 +85,11 @@
             exit(EXIT_FAILURE);
         }
         key = newValue;
+        [key retain];
     }
     else {
         value[key] = newValue;
+        [key release];
         key = nil;
     }
 }
@@ -84,27 +98,43 @@
     return value;
 }
 
+- (oneway void) release {
+    [value release];
+    value = nil;
+    [super release];
+}
+
 @end
 
 
-// implementation comes from the other file
-//@interface NSMutableArray (NAExt)
-//@end
-//
-//@implementation NSMutableArray (NAExt)
-//- (id) value {
-//    return self;
-//}
-//
-//- (void) consume: (__unsafe_unretained id) newValue
-//{
-//    [self addObject: newValue];
-//}
-//
-//- (bool) isComplete {
-//    return true;
-//}
-//@end
+@interface NAArray : NSObject
+{
+    NSMutableArray * value;
+}
+@end
+
+@implementation NAArray
+
+- (id) value {
+    return self->value;
+}
+
+- (void) consume: (__unsafe_unretained id) newValue
+{
+    [self->value addObject: newValue];
+}
+
+- (bool) isComplete {
+    return true;
+}
+
+- (oneway void) release {
+    [value release];
+    value = nil;
+    [super release];
+}
+
+@end
 
 
 @interface JsonParserObjcNoArc ()
@@ -128,24 +158,39 @@
 
 - (void) prepare {
     tokens = [[NSMutableArray alloc] init];
+    [tokens retain];
     [self resetCurrentTokenWithIndex: 0];
     isInsideString = false;
     isEscape = false;
     stack = [[NSMutableArray alloc] init];
+    [stack retain];
     result = [NSNull null];
 }
 
 - (void) tearDown {
+    for (NAToken * t in tokens) {
+        [t release];
+    }
+    [tokens release];
     tokens = nil;
+    
+    [currentToken release];
     currentToken = nil;
+    
     isInsideString = false;
     isEscape = false;
+    
+    [stack release];
     stack = nil;
+    
+    [result release];
     result = nil;
 }
 
 - (void) resetCurrentTokenWithIndex: (int) i {
+    [currentToken release];
     currentToken = [[NAToken alloc] initWithIndex:i length:0 isString:false];
+    [currentToken retain];
     isInsideString = false;
 }
 
@@ -290,6 +335,7 @@
                     
                     if (number != nil) {
                         token->value = number;
+                        [token->value retain];
                         token->type = TokenType_Value_Number;
                     } else {
                         NSLog(@"Unexpected char: %c", c);
@@ -306,27 +352,19 @@
                             initWithBytes:(bytes + token->index + 1)
                             length:token->length - 2
                             encoding: NSUTF8StringEncoding];
+            [token->value retain];
             token->type = TokenType_Value_String;
             continue;
         }
         
         if (token->length == 4) {
-//            if (0 == memcmp(bytes + token->index, "true", 4)) {
-//                token->value = [NSNumber numberWithBool:true];
-//                token->type = TokenType_Value_Bool;
-//            }
-//
-//            if (0 == memcmp(bytes + token->index, "null", 4)) {
-//                token->value = [NSNull null];
-//                token->type = TokenType_Value_Null;
-//            }
-            
             if (    (bytes[token->index + 0] == 't' || bytes[token->index + 0] == 'T')
                  && (bytes[token->index + 1] == 'r' || bytes[token->index + 1] == 'R')
                  && (bytes[token->index + 2] == 'u' || bytes[token->index + 2] == 'U')
                  && (bytes[token->index + 3] == 'e' || bytes[token->index + 3] == 'E'))
             {
                 token->value = [NSNumber numberWithBool:true];
+                [token->value retain];
                 token->type = TokenType_Value_Bool;
             }
             
@@ -343,11 +381,6 @@
         }
         
         if (token->length == 5) {
-//            if (0 == memcmp(bytes + token->index, "false", 4)) {
-//                token->value = [NSNumber numberWithBool:false];
-//                token->type = TokenType_Value_Bool;
-//            }
-            
             if (    (bytes[token->index + 0] == 'f' || bytes[token->index + 0] == 'F')
                  && (bytes[token->index + 1] == 'a' || bytes[token->index + 1] == 'A')
                  && (bytes[token->index + 2] == 'l' || bytes[token->index + 2] == 'L')
@@ -355,18 +388,13 @@
                  && (bytes[token->index + 4] == 'e' || bytes[token->index + 4] == 'E'))
             {
                 token->value = [NSNumber numberWithBool:false];
+                [token->value retain];
                 token->type = TokenType_Value_Bool;
             }
             continue;
         }
         
         // parse double
-        
-//        NSString * str = [[NSString alloc] initWithBytes:(bytes + token->index)
-//                                 length:token->length
-//                               encoding: NSUTF8StringEncoding];
-//        NSNumberFormatter * fmt = [NSNumberFormatter new];
-//        NSNumber * number = [fmt numberFromString: str];
         
         NSNumber * number = [JsonParserObjcNoArc
                              tryMakeDoubleWithStartIndex: token->index
@@ -375,6 +403,7 @@
         
         if (number != nil) {
             token->value = number;
+            [token->value retain];
             token->type = TokenType_Value_Number;
             continue;
         }
@@ -457,6 +486,8 @@
             case TokenType_Value_Bool:
             case TokenType_Value_Null:
                 result = token->value;
+                [result retain];
+                [token resetValue];
                 return;
             default:
                 NSLog(@"Invalid single token: %@", token->value);
@@ -482,7 +513,7 @@
                 break;
             }
             case TokenType_ArrayOpen: {
-                [stack addObject: [NSMutableArray new]];
+                [stack addObject: [[NAArray alloc] init]];
                 break;
             }
             case TokenType_ArrayClose: {
@@ -516,6 +547,7 @@
             case TokenType_Value_String: {
                 id current = stack.lastObject;
                 [current consume: token->value]; // will fail if wrong type
+                [token resetValue];
                 break;
             }
         }
@@ -527,7 +559,8 @@
     [stack removeLastObject];
     id parent = stack.lastObject;
     if (parent != nil) {
-        [parent consume: [current value]]; // will fail if wrong type
+        [parent consume: [current value]];
+        [current release];
     }
     else {
 #ifdef DEBUG
@@ -537,6 +570,8 @@
         }
 #endif
         result = [current value];
+        [result retain];
+        [current release];
     }
 }
 

@@ -3,3 +3,5 @@
 //
 
 #import "JsonParserObjc.h"
+#import "JsonParserObjcNoArc.h"
+

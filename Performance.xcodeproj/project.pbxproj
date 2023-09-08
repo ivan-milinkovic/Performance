@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2C0769FF2AAB639C00C402AF /* JsonParserObjcNoArc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0769FB2AAB606C00C402AF /* JsonParserObjcNoArc.m */; };
+		2C0769FF2AAB639C00C402AF /* JsonParserObjcNoArc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0769FB2AAB606C00C402AF /* JsonParserObjcNoArc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		2C228BF22A463EA400D18786 /* TestIterSpeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C228BF12A463EA400D18786 /* TestIterSpeed.swift */; };
 		2C286F232A569635008B76A1 /* TestTimeMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C286F222A569635008B76A1 /* TestTimeMeasurement.swift */; };
 		2C286F252A596A3B008B76A1 /* Profiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C286F242A596A3B008B76A1 /* Profiler.swift */; };
