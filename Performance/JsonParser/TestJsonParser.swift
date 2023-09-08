@@ -16,6 +16,7 @@ import OSLog
  JsonParserAscii    2_339_993 ticks,  97.50ms
  JSONDecoder        1_856_054 ticks,  77.34ms
  JsonParserObjc     1_386_492 ticks,  57.77ms
+ JsonParserObjc     1_362_449 ticks,  56.77ms
  JsonParserBuffers    941_253 ticks,  39.22ms
  JsonParserFopen      818_944 ticks,  34.12ms
  JsonParserCChar      817_413 ticks,  34.06ms
@@ -38,6 +39,9 @@ import OSLog
    486_076 ticks, 20.25ms - use Array.reserveCapacity(20)
    445_691 ticks, 18.57ms - use Array.reserveCapacity(5)
  
+ JsonParserObjc
+    1_386_492 ticks,  57.77ms
+    1_362_449 ticks,  56.77ms - use __unsafe_unretained for method parameters, avoids retain calls
  
  high %:
       Data iteration

@@ -75,7 +75,7 @@ typedef NS_ENUM(short, TokenType) {
     NSString * key;
 }
 - (bool) isComplete;
-- (void) consume: (id) value;
+- (void) consume: (__unsafe_unretained id) value;
 - (id) value;
 @end
 
@@ -92,7 +92,7 @@ typedef NS_ENUM(short, TokenType) {
     return key == nil;
 }
 
-- (void) consume: (id) newValue {
+- (void) consume: (__unsafe_unretained id) newValue {
     if (key == nil) {
         if (![newValue isKindOfClass:NSString.class]) {
             NSLog(@"Expected a map key, but got: %@", newValue);
@@ -106,21 +106,27 @@ typedef NS_ENUM(short, TokenType) {
     }
 }
 
-- (id) value {
+- (__unsafe_unretained id) value {
     return value;
 }
 
 @end
 
 
-@interface NSMutableArray (Value)
-- (id) value;
+@interface NSMutableArray (Ext)
 @end
 
-@implementation NSMutableArray (Value)
+@implementation NSMutableArray (Ext)
+
 - (id) value {
     return self;
 }
+
+- (void) consume: (__unsafe_unretained id) newValue
+{
+    [self addObject: newValue];
+}
+
 @end
 
 
@@ -192,7 +198,7 @@ typedef NS_ENUM(short, TokenType) {
     }
 }
 
-- (void) tokenize: (NSData *) data {
+- (void) tokenize: (__unsafe_unretained NSData *) data {
     const char* const bytes = data.bytes;
     int i=0;
     for (;i<data.length; i++)
@@ -273,7 +279,7 @@ typedef NS_ENUM(short, TokenType) {
         || cha == CHAR_ELEMENT_DELIMITER;
 }
 
-- (void) parseLiterals: (NSData*) data {
+- (void) parseLiterals: (__unsafe_unretained NSData*) data {
     const char* const bytes = data.bytes;
     for (int i=0; i<tokens.count; i++) {
         Token* token = tokens[i];
@@ -548,7 +554,9 @@ typedef NS_ENUM(short, TokenType) {
     }
 }
 
-- (void) mergeInto: (id) collection value: (id) newValue {
+- (void) mergeInto: (__unsafe_unretained id) collection
+             value: (__unsafe_unretained id) newValue
+{
     if (!([collection isMemberOfClass:JsonMap.class] || [collection isKindOfClass:NSMutableArray.class])) {
         NSLog(@"Found a value but there's no collection instance");
         exit(EXIT_FAILURE);
