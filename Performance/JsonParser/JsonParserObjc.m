@@ -127,6 +127,11 @@ typedef NS_ENUM(short, TokenType) {
     [self addObject: newValue];
 }
 
+- (bool) isComplete {
+    return true;
+}
+
+
 @end
 
 
@@ -515,12 +520,7 @@ typedef NS_ENUM(short, TokenType) {
             case TokenType_KeyValueDelimiter: {
                 // validations only
                 id current = stack.lastObject;
-                if (![current isMemberOfClass:JsonMap.class]) {
-                    NSLog(@"Expected a dictionary, got: %@", token->value);
-                    exit(EXIT_FAILURE);
-                }
-                JsonMap * map = current;
-                if (map->key == nil) {
+                if ([current isComplete]) {
                     NSLog(@"Found the key-value separator without a key being set previously");
                     exit(EXIT_FAILURE);
                 }
@@ -528,17 +528,9 @@ typedef NS_ENUM(short, TokenType) {
             }
             case TokenType_ElementDelimiter:{
                 id current = stack.lastObject;
-                if (!([current isMemberOfClass:JsonMap.class] || [current isKindOfClass:NSMutableArray.class])) {
-                    NSLog(@"Found the element delimiter but there's no collection instance");
+                if (![current isComplete]) { // will crash if wrong type
+                    NSLog(@"Found the element delimiter but the map is not complete"); // only map can be incomplete (key:val), array is always complete
                     exit(EXIT_FAILURE);
-                }
-                if ([current isMemberOfClass:JsonMap.class]) {
-                    JsonMap* map = current;
-                    if (!map.isComplete) {
-                        NSLog(@"Found the element delimiter but the map is not complete");
-                        exit(EXIT_FAILURE);
-                    }
-                    
                 }
                 break;
             }
@@ -547,28 +539,10 @@ typedef NS_ENUM(short, TokenType) {
             case TokenType_Value_Number:
             case TokenType_Value_String: {
                 id current = stack.lastObject;
-                [self mergeInto:current value:token->value];
+                [current consume: token->value]; // will fail if wrong type
                 break;
             }
         }
-    }
-}
-
-- (void) mergeInto: (__unsafe_unretained id) collection
-             value: (__unsafe_unretained id) newValue
-{
-    if (!([collection isMemberOfClass:JsonMap.class] || [collection isKindOfClass:NSMutableArray.class])) {
-        NSLog(@"Found a value but there's no collection instance");
-        exit(EXIT_FAILURE);
-    }
-    
-    if ([collection isMemberOfClass:JsonMap.class]) {
-        JsonMap* map = collection;
-        [map consume: newValue];
-    }
-    if ([collection isKindOfClass:NSMutableArray.class]) {
-        NSMutableArray* array = collection;
-        [array addObject: newValue];
     }
 }
 
@@ -577,15 +551,12 @@ typedef NS_ENUM(short, TokenType) {
     [stack removeLastObject];
     id parent = stack.lastObject;
     if (parent != nil) {
-        [self mergeInto:parent value:[current value]];
+        [parent consume: [current value]]; // will fail if wrong type
     }
     else {
-        if ([current isMemberOfClass:JsonMap.class]) {
-            JsonMap * map = current;
-            if (!map.isComplete) {
-                NSLog(@"Completing a collection, but the map is not complete");
-                exit(EXIT_FAILURE);
-            }
+        if (![current isComplete]) {
+            NSLog(@"Completing a collection, but the map is not complete");
+            exit(EXIT_FAILURE);
         }
         result = [current value];
     }

@@ -15,8 +15,7 @@ import OSLog
  JsonParserUnicode  2_343_682 ticks,  97.65ms
  JsonParserAscii    2_339_993 ticks,  97.50ms
  JSONDecoder        1_856_054 ticks,  77.34ms
- JsonParserObjc     1_386_492 ticks,  57.77ms
- JsonParserObjc     1_362_449 ticks,  56.77ms
+ JsonParserObjc     1_333_163 ticks,  55.55ms
  JsonParserBuffers    941_253 ticks,  39.22ms
  JsonParserFopen      818_944 ticks,  34.12ms
  JsonParserCChar      817_413 ticks,  34.06ms
@@ -40,8 +39,10 @@ import OSLog
    445_691 ticks, 18.57ms - use Array.reserveCapacity(5)
  
  JsonParserObjc
-    1_386_492 ticks,  57.77ms
-    1_362_449 ticks,  56.77ms - use __unsafe_unretained for method parameters, avoids retain calls
+    1_386_492 ticks, 57.77ms
+    1_362_449 ticks, 56.77ms - use __unsafe_unretained for method parameters, avoids retain calls
+    1_314_763 ticks, 54.78ms - avoid type checking ([obj isKindOf:]), just dispatch a known selector ([obj consume:])
+    1_124_139 ticks, 46.84ms - remove some type check validations that are replaced with selector calls
  
  high %:
       Data iteration
