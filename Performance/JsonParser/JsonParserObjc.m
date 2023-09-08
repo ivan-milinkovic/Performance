@@ -518,20 +518,24 @@ typedef NS_ENUM(short, TokenType) {
                 break;
             }
             case TokenType_KeyValueDelimiter: {
+#ifdef DEBUG
                 // validations only
                 id current = stack.lastObject;
                 if ([current isComplete]) {
                     NSLog(@"Found the key-value separator without a key being set previously");
                     exit(EXIT_FAILURE);
                 }
+#endif
                 break;
             }
             case TokenType_ElementDelimiter:{
+#ifdef DEBUG
                 id current = stack.lastObject;
                 if (![current isComplete]) { // will crash if wrong type
                     NSLog(@"Found the element delimiter but the map is not complete"); // only map can be incomplete (key:val), array is always complete
                     exit(EXIT_FAILURE);
                 }
+#endif
                 break;
             }
             case TokenType_Value_Null:
@@ -554,10 +558,12 @@ typedef NS_ENUM(short, TokenType) {
         [parent consume: [current value]]; // will fail if wrong type
     }
     else {
+#ifdef DEBUG
         if (![current isComplete]) {
             NSLog(@"Completing a collection, but the map is not complete");
             exit(EXIT_FAILURE);
         }
+#endif
         result = [current value];
     }
 }
