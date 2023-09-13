@@ -49,12 +49,24 @@ import OSLog
 
 func testJsonParser() {
     
+    let runJsonParserValues    = false
+    let runJsonParserUnicode   = false
+    let runJsonParserAscii     = false
+    let runJSONDecoder         = false
+    let runJsonParserObjc      = true
+    let runJsonParserObjcNoArc = false
+    let runJsonParserBuffers   = false
+    let runJsonParserFopen     = false
+    let runJsonParserCChar     = false
+    let runJsonParserIndexes   = false
+    let runJSONSerialization   = false
+    
 //    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
     let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
     let signposter = OSSignposter()
     
-    do {
+    if runJsonParserObjc {
         let data = try! Data(contentsOf: inputFileUrl)
         let state = signposter.beginInterval("JsonParserObjc")
         Profiler.reset()
@@ -65,9 +77,8 @@ func testJsonParser() {
         signposter.endInterval("JsonParserObjc", state)
         print("JsonParserObjc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
-//    return;
     
-    do {
+    if runJsonParserIndexes {
         let data = try! Data(contentsOf: inputFileUrl)
         let state = signposter.beginInterval("JsonParserIndexes")
         Profiler.reset()
@@ -79,7 +90,7 @@ func testJsonParser() {
         print("JsonParserIndexes:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
     
-    do {
+    if runJsonParserObjcNoArc {
         let data = try! Data(contentsOf: inputFileUrl)
         let state = signposter.beginInterval("JsonParserObjcNoArc")
         Profiler.reset()
@@ -91,7 +102,7 @@ func testJsonParser() {
         print("JsonParserObjcNoArc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
     
-    do {
+    if runJsonParserUnicode {
         var jsonString = try! String.init(contentsOf: inputFileUrl)
         jsonString.makeContiguousUTF8()
         Profiler.reset()
@@ -102,7 +113,7 @@ func testJsonParser() {
         print("JsonParserUnicode:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
 
-    do {
+    if runJsonParserAscii {
         let data = try! Data(contentsOf: inputFileUrl)
         Profiler.reset()
         Profiler.start(0)
@@ -112,7 +123,7 @@ func testJsonParser() {
         print("JsonParserAscii:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
 
-    do {
+    if runJsonParserFopen {
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserFopen()
@@ -121,7 +132,7 @@ func testJsonParser() {
         print("JsonParserFopen:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
 
-    do {
+    if runJsonParserCChar {
         let data = try! Data(contentsOf: inputFileUrl)
         let state = signposter.beginInterval("JsonParserCChar")
         Profiler.reset()
@@ -133,7 +144,7 @@ func testJsonParser() {
         print("JsonParserCChar:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
     
-    do {
+    if runJsonParserBuffers {
         let data = try! Data(contentsOf: inputFileUrl)
         Profiler.reset()
         Profiler.start(0)
@@ -143,7 +154,7 @@ func testJsonParser() {
         print("JsonParserBuffers:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
 
-    do {
+    if runJsonParserValues {
         let data = try! Data(contentsOf: inputFileUrl)
         Profiler.reset()
         Profiler.start(0)
@@ -153,7 +164,7 @@ func testJsonParser() {
         print("JsonParserValues:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
 
-    do {
+    if runJSONDecoder {
         let data = try! Data.init(contentsOf: inputFileUrl)
         Profiler.reset()
         Profiler.start(0)
@@ -162,7 +173,7 @@ func testJsonParser() {
         print("JSONDecoder:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
 
-    do {
+    if runJSONSerialization {
         let data = try! Data.init(contentsOf: inputFileUrl)
         let state = signposter.beginInterval("JSONSerialization")
         Profiler.reset()
