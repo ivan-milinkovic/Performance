@@ -8,12 +8,13 @@ import OSLog
  JsonParserUnicode    2_343_682 ticks,  97.65ms
  JsonParserAscii      2_339_993 ticks,  97.50ms
  JSONDecoder          1_856_054 ticks,  77.34ms
+ JsonParserObjcC:     1_771_327 ticks,  73.81ms
  JsonParserObjc       1_080_941 ticks,  45.04ms
  JsonParserObjcNoArc  1_000_709 ticks,  41.70ms
  JsonParserBuffers      941_253 ticks,  39.22ms
  JsonParserFopen        818_944 ticks,  34.12ms
  JsonParserCChar        817_413 ticks,  34.06ms
- JsonParserIndexes      514_022 ticks,  21.42ms
+ JsonParserIndexes:     445_691 ticks,  18.57ms
  JSONSerialization      164_948 ticks,   6.87ms
  
  
@@ -39,6 +40,10 @@ import OSLog
     1_124_139 ticks, 46.84ms - remove some type check validations that are replaced with selector calls
     1_080_941 ticks, 45.04ms - exclude validations from release (#ifdef DEBUG)
  
+ JsonParserObjcC
+  1_771_327 ticks, 73.81ms - initial C implementation with array resizing
+    674_234 ticks, 28.09ms - precalculate safe size for token array based on input data size
+ 
  high %:
       Data iteration
       String / Character
@@ -53,7 +58,8 @@ func testJsonParser() {
     let runJsonParserUnicode   = false
     let runJsonParserAscii     = false
     let runJSONDecoder         = false
-    let runJsonParserObjc      = true
+    let runJsonParserObjc      = false
+    let runJsonParserObjcC     = true
     let runJsonParserObjcNoArc = false
     let runJsonParserBuffers   = false
     let runJsonParserFopen     = false
@@ -78,16 +84,28 @@ func testJsonParser() {
         print("JsonParserObjc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
     
+    if runJsonParserObjcC {
+        let data = try! Data(contentsOf: inputFileUrl)
+        let state = signposter.beginInterval("JsonParserObjcC")
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserObjcC()
+        let res = jsonParser.parse(data: data)
+        Profiler.end(0)
+        signposter.endInterval("JsonParserObjc", state)
+        print("JsonParserObjcC:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of: res))
+    }
+    
     if runJsonParserIndexes {
         let data = try! Data(contentsOf: inputFileUrl)
         let state = signposter.beginInterval("JsonParserIndexes")
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserIndexes()
-        let _ = jsonParser.parse(data: data)
+        let res = jsonParser.parse(data: data)
         Profiler.end(0)
         signposter.endInterval("JsonParserIndexes", state)
-        print("JsonParserIndexes:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserIndexes:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of: res))
     }
     
     if runJsonParserObjcNoArc {
@@ -178,10 +196,10 @@ func testJsonParser() {
         let state = signposter.beginInterval("JSONSerialization")
         Profiler.reset()
         Profiler.start(0)
-        let _ = try! JSONSerialization.jsonObject(with: data)
+        let res = try! JSONSerialization.jsonObject(with: data)
         Profiler.end(0)
         signposter.endInterval("JSONSerialization", state)
-        print("JSONSerialization:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JSONSerialization:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of: res))
     }
     
 }

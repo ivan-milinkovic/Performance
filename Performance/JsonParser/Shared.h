@@ -29,4 +29,7 @@ typedef NS_ENUM(short, TokenType) {
     TokenType_Value_Null
 };
 
+@class NSNumber;
+NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes);
+
 #endif /* Shared_h */

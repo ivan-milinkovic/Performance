@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		2C0769FF2AAB639C00C402AF /* JsonParserObjcNoArc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0769FB2AAB606C00C402AF /* JsonParserObjcNoArc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		2C0A629C2AB1926B00CB8E1F /* JsonParserObjcC.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0A629B2AB1916A00CB8E1F /* JsonParserObjcC.m */; };
+		2C0A629E2AB37C9500CB8E1F /* shared.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0A629D2AB37C9500CB8E1F /* shared.m */; };
 		2C228BF22A463EA400D18786 /* TestIterSpeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C228BF12A463EA400D18786 /* TestIterSpeed.swift */; };
 		2C286F232A569635008B76A1 /* TestTimeMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C286F222A569635008B76A1 /* TestTimeMeasurement.swift */; };
 		2C286F252A596A3B008B76A1 /* Profiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C286F242A596A3B008B76A1 /* Profiler.swift */; };
@@ -58,6 +60,9 @@
 		2C0769FA2AAB606C00C402AF /* JsonParserObjcNoArc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JsonParserObjcNoArc.h; sourceTree = "<group>"; };
 		2C0769FB2AAB606C00C402AF /* JsonParserObjcNoArc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JsonParserObjcNoArc.m; sourceTree = "<group>"; };
 		2C0769FD2AAB61A000C402AF /* Shared.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Shared.h; sourceTree = "<group>"; };
+		2C0A629A2AB1916A00CB8E1F /* JsonParserObjcC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JsonParserObjcC.h; sourceTree = "<group>"; };
+		2C0A629B2AB1916A00CB8E1F /* JsonParserObjcC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JsonParserObjcC.m; sourceTree = "<group>"; };
+		2C0A629D2AB37C9500CB8E1F /* shared.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = shared.m; sourceTree = "<group>"; };
 		2C228BF12A463EA400D18786 /* TestIterSpeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestIterSpeed.swift; sourceTree = "<group>"; };
 		2C286F222A569635008B76A1 /* TestTimeMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTimeMeasurement.swift; sourceTree = "<group>"; };
 		2C286F242A596A3B008B76A1 /* Profiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profiler.swift; sourceTree = "<group>"; };
@@ -173,7 +178,10 @@
 				2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */,
 				2C0769FA2AAB606C00C402AF /* JsonParserObjcNoArc.h */,
 				2C0769FB2AAB606C00C402AF /* JsonParserObjcNoArc.m */,
+				2C0A629A2AB1916A00CB8E1F /* JsonParserObjcC.h */,
+				2C0A629B2AB1916A00CB8E1F /* JsonParserObjcC.m */,
 				2C0769FD2AAB61A000C402AF /* Shared.h */,
+				2C0A629D2AB37C9500CB8E1F /* shared.m */,
 			);
 			path = JsonParser;
 			sourceTree = "<group>";
@@ -285,6 +293,7 @@
 				2C286F292A5992E6008B76A1 /* JsonParserValues.swift in Sources */,
 				2CC8C1D92A46474100EFF8EF /* JsonParserUnicode.swift in Sources */,
 				2CBE79992A2BB6240016B8C9 /* cleancode.swift in Sources */,
+				2C0A629C2AB1926B00CB8E1F /* JsonParserObjcC.m in Sources */,
 				2C8E71D72A483B560004CDDD /* JsonParserFopen.swift in Sources */,
 				2CCA0BD92AA373BD00F67581 /* JsonParserIndexes.swift in Sources */,
 				2CC8C1DB2A4648C500EFF8EF /* JsonParserAscii.swift in Sources */,
@@ -294,6 +303,7 @@
 				2CEE8F822AA9D67C00A55F7A /* JsonParserObjc.m in Sources */,
 				2C286F252A596A3B008B76A1 /* Profiler.swift in Sources */,
 				2C8E71D92A48CA6D0004CDDD /* JsonParserBuffers.swift in Sources */,
+				2C0A629E2AB37C9500CB8E1F /* shared.m in Sources */,
 				2C286F272A59741D008B76A1 /* TestDataIteration.swift in Sources */,
 				2CC8C1DE2A464DAD00EFF8EF /* SwiftSpeed.swift in Sources */,
 				2CBE799B2A2C684D0016B8C9 /* cpu8086.swift in Sources */,
