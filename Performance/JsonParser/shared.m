@@ -62,4 +62,3 @@ NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes) {
     
     return [NSNumber numberWithDouble:num];
 }
-

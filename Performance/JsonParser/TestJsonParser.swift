@@ -43,6 +43,7 @@ import OSLog
  JsonParserObjcC
   1_771_327 ticks, 73.81ms - initial C implementation with array resizing
     674_234 ticks, 28.09ms - precalculate safe size for token array based on input data size
+    698_234 ticks, 29.09ms - avoid using collection wrappers
  
  high %:
       Data iteration
@@ -92,7 +93,7 @@ func testJsonParser() {
         let jsonParser = JsonParserObjcC()
         let res = jsonParser.parse(data: data)
         Profiler.end(0)
-        signposter.endInterval("JsonParserObjc", state)
+        signposter.endInterval("JsonParserObjcC", state)
         print("JsonParserObjcC:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of: res))
     }
     

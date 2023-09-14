@@ -1,11 +1,21 @@
 #import "JsonParserObjcC.h"
 #import "Shared.h"
-#import <objc/runtime.h>
 
-// po [[NSString alloc] initWithBytes:(bytes + currentToken->index) length:currentToken->length encoding:NSUTF8StringEncoding];
-// p ((__bridge OCCToken*)ocarray_get(&tokens, 0))->index
-// p ((__bridge OCCToken*)ocarray_get(&tokens, 0))->length
-// p (*((__bridge OCCToken**)ocarray_get(&tokens, 0)))->index
+#import <OSLog/OSLog.h>
+
+/*
+ p ((__bridge OCCToken*)ocarray_get(&tokens, 0))->index
+ p ((__bridge OCCToken*)ocarray_get(&tokens, 0))->length
+ p (*((__bridge OCCToken**)ocarray_get(&tokens, 0)))->index
+ po [[NSString alloc] initWithBytes:(bytes + currentToken->index) length:currentToken->length encoding:NSUTF8StringEncoding];
+ 
+ os_log_t log = os_log_create("parser", OS_LOG_CATEGORY_POINTS_OF_INTEREST);
+ os_signpost_id_t sid = os_signpost_id_generate(log);
+ os_signpost_interval_begin(log, sid, "collections");
+ os_signpost_interval_end(log, sid, "collections");
+ */
+
+// try a linked list
 
 typedef struct {
     void * ptr;
@@ -72,75 +82,6 @@ NSString * desc(OCToken * token, char * bytes) {
     return [[NSString alloc] initWithBytes:(bytes + token->index) length:token->length encoding:NSUTF8StringEncoding];
 }
 
-@interface OCCJsonMap: NSObject
-{
-    @public
-    NSMutableDictionary * value;
-    NSString * key;
-}
-- (bool) isComplete;
-- (void) consume: (__unsafe_unretained id) value;
-- (id) value;
-@end
-
-@implementation OCCJsonMap
-
-- (instancetype) init {
-    self = [super init];
-    value = [NSMutableDictionary new];
-    key = nil;
-    return self;
-}
-
-- (bool) isComplete {
-    return key == nil;
-}
-
-- (void) consume: (__unsafe_unretained id) newValue {
-    if (key == nil) {
-        if (![newValue isKindOfClass:NSString.class]) {
-            NSLog(@"Expected a map key, but got: %@", newValue);
-            exit(EXIT_FAILURE);
-        }
-        key = newValue;
-    }
-    else {
-        value[key] = newValue;
-        key = nil;
-    }
-}
-
-- (__unsafe_unretained id) value {
-    return value;
-}
-
-@end
-
-
-@interface OCCArray : NSObject
-{
-    NSMutableArray * value;
-}
-@end
-
-@implementation OCCArray
-
-- (id) value {
-    return value;
-}
-
-- (void) consume: (__unsafe_unretained id) newValue
-{
-    [self->value addObject: newValue];
-}
-
-- (bool) isComplete {
-    return true;
-}
-
-@end
-
-
 @interface JsonParserObjcC ()
 {
     // use c array
@@ -149,6 +90,7 @@ NSString * desc(OCToken * token, char * bytes) {
     bool isInsideString;
     bool isEscape;
     NSMutableArray * stack;
+    NSString * key; // when building a key value pair before putting them into a dictionary
     id result;
 }
 
@@ -175,6 +117,7 @@ NSString * desc(OCToken * token, char * bytes) {
     isInsideString = false;
     isEscape = false;
     stack = nil;
+    key = nil;
     result = nil;
 }
 
@@ -193,19 +136,11 @@ NSString * desc(OCToken * token, char * bytes) {
 
 - (id) parse:(NSData *) data {
     
-    [self prepare: (int)data.length * sizeof(OCToken)];
-    
-//    OCCToken * t1 = [[OCCToken alloc] initWithIndex:0xAAAAAAAA length:0xBBBBBBBB isString:false];
-//    OCCToken * t2 = [[OCCToken alloc] initWithIndex:3 length:4 isString:false];
-//    const void * t1p = (__bridge const void *)(t1);
-//    int t1s = (int) class_getInstanceSize(OCCToken.class);
-//    const void ** t1pp = &t1p;
-//    ocarray_add(&tokens, t1pp, sizeof(void *));
-//    ocarray_add(&tokens, &t2, sizeof(void *));
+    int size = (int)data.length * sizeof(OCToken);
+//    printf("size: %d\n", size);
+    [self prepare: size];
     
     [self tokenize: data];
-//    return NSNull.null;
-    
     [self parseLiterals: data];
     [self parseCollections];
     
@@ -356,16 +291,6 @@ NSString * desc(OCToken * token, char * bytes) {
         }
         
         if (ptoken->length == 4) {
-//            if (0 == memcmp(bytes + token->index, "true", 4)) {
-//                token->value = [NSNumber numberWithBool:true];
-//                token->type = TokenType_Value_Bool;
-//            }
-//
-//            if (0 == memcmp(bytes + token->index, "null", 4)) {
-//                token->value = [NSNull null];
-//                token->type = TokenType_Value_Null;
-//            }
-            
             if (    (bytes[ptoken->index + 0] == 't' || bytes[ptoken->index + 0] == 'T')
                  && (bytes[ptoken->index + 1] == 'r' || bytes[ptoken->index + 1] == 'R')
                  && (bytes[ptoken->index + 2] == 'u' || bytes[ptoken->index + 2] == 'U')
@@ -388,11 +313,6 @@ NSString * desc(OCToken * token, char * bytes) {
         }
         
         if (ptoken->length == 5) {
-//            if (0 == memcmp(bytes + token->index, "false", 4)) {
-//                token->value = [NSNumber numberWithBool:false];
-//                token->type = TokenType_Value_Bool;
-//            }
-            
             if (    (bytes[ptoken->index + 0] == 'f' || bytes[ptoken->index + 0] == 'F')
                  && (bytes[ptoken->index + 1] == 'a' || bytes[ptoken->index + 1] == 'A')
                  && (bytes[ptoken->index + 2] == 'l' || bytes[ptoken->index + 2] == 'L')
@@ -458,7 +378,7 @@ NSString * desc(OCToken * token, char * bytes) {
                 break;
             }
             case TokenType_MapOpen: {
-                [stack addObject: [OCCJsonMap new]];
+                [stack addObject: [[NSMutableDictionary alloc] init]];
                 break;
             }
             case TokenType_MapClose: {
@@ -466,7 +386,7 @@ NSString * desc(OCToken * token, char * bytes) {
                 break;
             }
             case TokenType_ArrayOpen: {
-                [stack addObject: [OCCArray new]];
+                [stack addObject: [[NSMutableArray alloc] init]];
                 break;
             }
             case TokenType_ArrayClose: {
@@ -476,8 +396,7 @@ NSString * desc(OCToken * token, char * bytes) {
             case TokenType_KeyValueDelimiter: {
 #ifdef DEBUG
                 // validations only
-                id current = stack.lastObject;
-                if ([current isComplete]) {
+                if (key == nil) {
                     NSLog(@"Found the key-value separator without a key being set previously");
                     exit(EXIT_FAILURE);
                 }
@@ -486,8 +405,7 @@ NSString * desc(OCToken * token, char * bytes) {
             }
             case TokenType_ElementDelimiter:{
 #ifdef DEBUG
-                id current = stack.lastObject;
-                if (![current isComplete]) { // will crash if wrong type
+                if (key != nil) { // will crash if wrong type
                     NSLog(@"Found the element delimiter but the map is not complete"); // only map can be incomplete (key:val), array is always complete
                     exit(EXIT_FAILURE);
                 }
@@ -499,7 +417,7 @@ NSString * desc(OCToken * token, char * bytes) {
             case TokenType_Value_Number:
             case TokenType_Value_String: {
                 id current = stack.lastObject;
-                [current consume: ptoken->value]; // will fail if wrong type
+                [self consumeBy: current newValue:ptoken->value];
                 break;
             }
         }
@@ -511,17 +429,40 @@ NSString * desc(OCToken * token, char * bytes) {
     [stack removeLastObject];
     id parent = stack.lastObject;
     if (parent != nil) {
-        [parent consume: [current value]]; // will fail if wrong type
+        [self consumeBy: parent newValue: current];
     }
     else {
 #ifdef DEBUG
-        if (![current isComplete]) {
+        if (key != nil) {
             NSLog(@"Completing a collection, but the map is not complete");
             exit(EXIT_FAILURE);
         }
 #endif
-        result = [current value];
+        result = current;
     }
+}
+
+- (void) consumeBy:(id)collection newValue: (__unsafe_unretained id) newValue {
+    
+    if ([collection isKindOfClass: NSMutableDictionary.class]) {
+        NSMutableDictionary* col = collection;
+        if (key == nil) {
+            if (![newValue isKindOfClass: NSString.class]) {
+                NSLog(@"Expected a map key, but got: %@", newValue);
+                exit(EXIT_FAILURE);
+            }
+            key = newValue;
+        }
+        else {
+            col[key] = newValue;
+            key = nil;
+        }
+    }
+    else if ([collection isKindOfClass: NSMutableArray.class]) {
+        NSMutableArray* col = collection;
+        [col addObject: newValue];
+    }
+    
 }
 
 @end
