@@ -1,8 +1,6 @@
 #import "JsonParserObjcNoArc.h"
 #import "Shared.h"
 
-
-
 @interface NAToken : NSObject
 {
     @public

@@ -15,8 +15,6 @@
  os_signpost_interval_end(log, sid, "collections");
  */
 
-// todo: parse literals while parsing collections (avoid extra iteration for literals only)
-
 typedef struct {
     void * ptr;
     int capacity;
@@ -124,6 +122,8 @@ void resetCurrentToken(__unsafe_unretained JsonParserObjcC * parser, int index) 
     parser->currentToken.index = index;
     parser->currentToken.length = 0;
     parser->currentToken.isString = false;
+    parser->currentToken.type = TokenType_Unresolved;
+    
     parser->isInsideString = false;
 }
 
@@ -136,10 +136,8 @@ void resetCurrentToken(__unsafe_unretained JsonParserObjcC * parser, int index) 
     
     int arraySize = 20; // (int)data.length * sizeof(OCToken);
     [self prepare: arraySize];
-    
     [self tokenize: data];
-    [self parseLiterals: data];
-    [self parseCollections];
+    [self parseCollections: data];
     
     id resultCopy = result;
     [self tearDown];
@@ -184,9 +182,8 @@ void resetCurrentToken(__unsafe_unretained JsonParserObjcC * parser, int index) 
             continue;
         }
         
-        bool isWS = isWhitespace(cha);
-        
-        if (isWS) {
+        bool is_whitespace = isWhitespace(cha);
+        if (is_whitespace) {
             if (currentToken.length == 0) {
                 currentToken.index++;
             } else {
@@ -198,11 +195,12 @@ void resetCurrentToken(__unsafe_unretained JsonParserObjcC * parser, int index) 
         if (cha == CHAR_STRING_DELIMITER) {
             isInsideString = true;
             currentToken.length++;
+            currentToken.type = TokenType_Value_String;
             continue;
         }
         
-        bool isDelimit = isDelimiter(cha);
-        if (isDelimit) {
+        bool is_delimiter = isDelimiter(cha);
+        if (is_delimiter) {
             finalizeCurrentToken(self, i);
             currentToken.index = i;
             currentToken.length = 1;
@@ -241,16 +239,7 @@ inline bool isDelimiter(char cha) {
         || cha == CHAR_ELEMENT_DELIMITER;
 }
 
-- (void) parseLiterals: (__unsafe_unretained NSData*) data {
-    const char* const bytes = data.bytes;
-    
-    for (int i=0; i<tokens.index; i++) {
-        OCToken * ptoken = ocarray_get(&(self->tokens), i);
-        parseTokenValue(ptoken, bytes, i);
-    }
-}
-
-static void parseTokenValue(OCToken * ptoken, const char *bytes, int i) {
+static void parseTokenValue(OCToken * ptoken, const char *bytes) {
     if (ptoken->length == 1) {
         char c = bytes[ptoken->index];
         switch (c) {
@@ -340,11 +329,15 @@ static void parseTokenValue(OCToken * ptoken, const char *bytes, int i) {
         return;
     }
     
-    NSLog(@"Invalid token: %@, at index: %d", ptoken->value, i);
+    NSLog(@"Invalid token at byte index: %d", ptoken->index);
     exit(EXIT_FAILURE);
 }
 
-- (void) parseCollections {
+- (void) parseCollections:(__unsafe_unretained NSData *) data {
+    
+    const char* const bytes = data.bytes;
+    
+    // index == length, index points to a position after the last element
     
     if (tokens.index == 0) {
         result = NSNull.null;
@@ -354,6 +347,7 @@ static void parseTokenValue(OCToken * ptoken, const char *bytes, int i) {
     if (tokens.index == 1) {
         OCToken * ptoken = ocarray_get(&tokens, 0);
         TokenType type = ptoken->type;
+        parseTokenValue(ptoken, bytes);
         switch (type) {
             case TokenType_Value_String:
             case TokenType_Value_Number:
@@ -369,6 +363,7 @@ static void parseTokenValue(OCToken * ptoken, const char *bytes, int i) {
     
     for (int i=0; i<tokens.index; i++) {
         OCToken * ptoken = ocarray_get(&tokens, i);
+        parseTokenValue(ptoken, bytes);
         TokenType type = ptoken->type;
         switch (type) {
             case TokenType_Unresolved: {

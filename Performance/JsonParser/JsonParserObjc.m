@@ -356,13 +356,6 @@
         }
         
         // parse double
-        
-//        NSString * str = [[NSString alloc] initWithBytes:(bytes + token->index)
-//                                 length:token->length
-//                               encoding: NSUTF8StringEncoding];
-//        NSNumberFormatter * fmt = [NSNumberFormatter new];
-//        NSNumber * number = [fmt numberFromString: str];
-        
         NSNumber * number = tryMakeDouble(token->index, token->length, bytes);
         if (number != nil) {
             token->value = number;

@@ -49,6 +49,7 @@ import OSLog
     425_235 ticks, 17.72ms - inline isWhitespace and isDelimiter
     389_813 ticks, 16.24ms - use C functions instead of ObjC methods (message sends)
     372_133 ticks, 15.51ms - extract token parsing to a function
+                           - Moving value parsing inside pareCollections (avoid extra loop through tokens) gave no benefit
  
  high %:
       Data iteration
