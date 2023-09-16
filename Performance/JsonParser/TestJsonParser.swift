@@ -14,7 +14,7 @@ import OSLog
  JsonParserFopen        818_944 ticks,  34.12ms
  JsonParserCChar        817_413 ticks,  34.06ms
  JsonParserIndexes      445_691 ticks,  18.57ms
- JsonParserObjcC        431_279 ticks,  17.97ms
+ JsonParserObjcC        389_813 ticks,  16.24ms
  JSONSerialization      164_948 ticks,   6.87ms
  
  
@@ -46,8 +46,8 @@ import OSLog
     698_234 ticks, 29.09ms - avoid using collection wrappers
     653_262 ticks, 27.22ms - use realloc instaed of pre-calculating and allocating the full array size
     553_015 ticks, 23.04ms - store NSData.length into a variable for a for loop
-    431_279 ticks, 17.97ms - use C functions instead of ObjC methods (message sends)
-    425_235 ticks, 17.72ms - inline isWhitespace and isDelimiter, not much gain, but consistent bellow 18ms performance
+    425_235 ticks, 17.72ms - inline isWhitespace and isDelimiter
+    389_813 ticks, 16.24ms - use C functions instead of ObjC methods (message sends)
  
  high %:
       Data iteration

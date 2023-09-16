@@ -15,7 +15,7 @@
  os_signpost_interval_end(log, sid, "collections");
  */
 
-// try a linked list
+// todo: parse literals while parsing collections (avoid extra iteration for literals only)
 
 typedef struct {
     void * ptr;
@@ -120,7 +120,7 @@ NSString * desc(OCToken * token, char * bytes) {
     result = nil;
 }
 
-void resetCurrentToken(JsonParserObjcC * parser, int index) {
+void resetCurrentToken(__unsafe_unretained JsonParserObjcC * parser, int index) {
     parser->currentToken.index = index;
     parser->currentToken.length = 0;
     parser->currentToken.isString = false;
@@ -224,7 +224,7 @@ void resetCurrentToken(JsonParserObjcC * parser, int index) {
     finalizeCurrentToken(self, i);
 }
 
-void finalizeCurrentToken(JsonParserObjcC* parser, int i) {
+void finalizeCurrentToken(__unsafe_unretained JsonParserObjcC * parser, int i) {
     if (parser->currentToken.length > 0) {
         parser->currentToken.isString = parser->isInsideString;
         ocarray_add(&(parser->tokens), &(parser->currentToken), parser->tokens.elsize);
@@ -392,7 +392,7 @@ inline bool isDelimiter(char cha) {
                 break;
             }
             case TokenType_MapClose: {
-                [self popStack];
+                popStack(self);
                 break;
             }
             case TokenType_ArrayOpen: {
@@ -400,7 +400,7 @@ inline bool isDelimiter(char cha) {
                 break;
             }
             case TokenType_ArrayClose: {
-                [self popStack];
+                popStack(self);
                 break;
             }
             case TokenType_KeyValueDelimiter: {
@@ -427,45 +427,47 @@ inline bool isDelimiter(char cha) {
             case TokenType_Value_Number:
             case TokenType_Value_String: {
                 id current = stack.lastObject;
-                [self consumeBy: current newValue:ptoken->value];
+                consumeNewValue(self, current, ptoken->value);
                 break;
             }
         }
     }
 }
 
-- (void) popStack {
-    id current = stack.lastObject;
-    [stack removeLastObject];
-    id parent = stack.lastObject;
+void popStack (__unsafe_unretained JsonParserObjcC * parser) {
+    id current = parser->stack.lastObject;
+    [parser->stack removeLastObject];
+    id parent = parser->stack.lastObject;
     if (parent != nil) {
-        [self consumeBy: parent newValue: current];
+        consumeNewValue(parser, parent, current);
     }
     else {
 #ifdef DEBUG
-        if (key != nil) {
+        if (parser->key != nil) {
             NSLog(@"Completing a collection, but the map is not complete");
             exit(EXIT_FAILURE);
         }
 #endif
-        result = current;
+        parser->result = current;
     }
 }
 
-- (void) consumeBy:(id)collection newValue: (__unsafe_unretained id) newValue {
+void consumeNewValue(__unsafe_unretained JsonParserObjcC * parser,
+                     __unsafe_unretained id collection,
+                     __unsafe_unretained id newValue) {
     
     if ([collection isKindOfClass: NSMutableDictionary.class]) {
         NSMutableDictionary* col = collection;
-        if (key == nil) {
+        if (parser->key == nil) {
             if (![newValue isKindOfClass: NSString.class]) {
                 NSLog(@"Expected a map key, but got: %@", newValue);
                 exit(EXIT_FAILURE);
             }
-            key = newValue;
+            parser->key = newValue;
         }
         else {
-            col[key] = newValue;
-            key = nil;
+            col[parser->key] = newValue;
+            parser->key = nil;
         }
     }
     else if ([collection isKindOfClass: NSMutableArray.class]) {
