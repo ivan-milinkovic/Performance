@@ -192,7 +192,9 @@ void resetCurrentToken(JsonParserObjcC * parser, int index) {
             continue;
         }
         
-        if (isWhitespace(cha)) {
+        bool isWS = isWhitespace(cha);
+        
+        if (isWS) {
             if (currentToken.length == 0) {
                 currentToken.index++;
             } else {
@@ -207,7 +209,8 @@ void resetCurrentToken(JsonParserObjcC * parser, int index) {
             continue;
         }
         
-        if (isDelimiter(cha)) {
+        bool isDelimit = isDelimiter(cha);
+        if (isDelimit) {
             finalizeCurrentToken(self, i);
             currentToken.index = i;
             currentToken.length = 1;
@@ -230,14 +233,14 @@ void finalizeCurrentToken(JsonParserObjcC* parser, int i) {
     resetCurrentToken(parser, i + 1);
 }
 
-bool isWhitespace(char cha) {
+inline bool isWhitespace(char cha) {
     return cha == CHAR_SPACE
         || cha == CHAR_NEWLINE
         || cha == CHAR_CARRIAGE
         || cha == CHAR_TAB;
 }
 
-bool isDelimiter(char cha) {
+inline bool isDelimiter(char cha) {
     return cha == CHAR_MAP_OPEN
         || cha == CHAR_MAP_CLOSE
         || cha == CHAR_ARRAY_OPEN

@@ -47,6 +47,7 @@ import OSLog
     653_262 ticks, 27.22ms - use realloc instaed of pre-calculating and allocating the full array size
     553_015 ticks, 23.04ms - store NSData.length into a variable for a for loop
     431_279 ticks, 17.97ms - use C functions instead of ObjC methods (message sends)
+    425_235 ticks, 17.72ms - inline isWhitespace and isDelimiter, not much gain, but consistent bellow 18ms performance
  
  high %:
       Data iteration
