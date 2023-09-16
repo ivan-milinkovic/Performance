@@ -156,8 +156,9 @@ NSString * desc(OCToken * token, char * bytes) {
 
 - (void) tokenize: (__unsafe_unretained NSData *) data {
     const char* const bytes = data.bytes;
-    int i=0;
-    for (;i<data.length; i++)
+    int i = 0;
+    int cnt = (int) data.length;
+    for (;i<cnt; i++)
     {
         char cha = bytes[i];
         
