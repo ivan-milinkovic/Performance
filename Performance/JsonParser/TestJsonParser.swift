@@ -14,7 +14,7 @@ import OSLog
  JsonParserFopen        818_944 ticks,  34.12ms
  JsonParserCChar        817_413 ticks,  34.06ms
  JsonParserIndexes      445_691 ticks,  18.57ms
- JsonParserObjcC        389_813 ticks,  16.24ms
+ JsonParserObjcC        321_424 ticks,  13.39ms
  JSONSerialization      164_948 ticks,   6.87ms
  
  
