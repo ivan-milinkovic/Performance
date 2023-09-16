@@ -47,12 +47,9 @@ void ocarray_resize(OCArray * oca) {
     else {
         new_capacity = 1.3 * current_capacity;
     }
-    void * new_ptr = malloc(new_capacity * oca->elsize);
-    memcpy(new_ptr, oca->ptr, oca->capacity * oca->elsize);
-    void * old_ptr = oca->ptr;
-    oca->ptr = new_ptr;
+    
+    oca->ptr = realloc(oca->ptr, new_capacity * oca->elsize);
     oca->capacity = new_capacity;
-    free(old_ptr);
 }
 
 void ocarray_add(OCArray * oca, const void * src, int srcsize) {
@@ -136,9 +133,8 @@ NSString * desc(OCToken * token, char * bytes) {
 
 - (id) parse:(NSData *) data {
     
-    int size = (int)data.length * sizeof(OCToken);
-//    printf("size: %d\n", size);
-    [self prepare: size];
+    int arraySize = 20; // (int)data.length * sizeof(OCToken);
+    [self prepare: arraySize];
     
     [self tokenize: data];
     [self parseLiterals: data];
