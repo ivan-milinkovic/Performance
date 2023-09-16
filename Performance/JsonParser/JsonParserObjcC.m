@@ -127,14 +127,6 @@ void resetCurrentToken(__unsafe_unretained JsonParserObjcC * parser, int index) 
     parser->isInsideString = false;
 }
 
-- (void) resetCurrentTokenWithIndex: (int) i {
-    currentToken.index = i;
-    currentToken.length = 0;
-    currentToken.isString = false;
-    
-    isInsideString = false;
-}
-
 - (id) parseString:(NSString *) string {
     NSData * data = [string dataUsingEncoding: NSUTF8StringEncoding];
     return [self parse: data];
@@ -253,106 +245,103 @@ inline bool isDelimiter(char cha) {
     const char* const bytes = data.bytes;
     
     for (int i=0; i<tokens.index; i++) {
-        OCToken * ptoken = ocarray_get(&tokens, i);
-        
-        if (ptoken->length == 1) {
-            char c = bytes[ptoken->index];
-            switch (c) {
-                case CHAR_MAP_OPEN:
-                    ptoken->type = TokenType_MapOpen;
-                    break;
-                case CHAR_MAP_CLOSE:
-                    ptoken->type = TokenType_MapClose;
-                    break;
-                case CHAR_ARRAY_OPEN:
-                    ptoken->type = TokenType_ArrayOpen;
-                    break;
-                case CHAR_ARRAY_CLOSE:
-                    ptoken->type = TokenType_ArrayClose;
-                    break;
-                case CHAR_KEY_VALUE_DELIMITER:
-                    ptoken->type = TokenType_KeyValueDelimiter;
-                    break;
-                case CHAR_ELEMENT_DELIMITER:
-                    ptoken->type = TokenType_ElementDelimiter;
-                    break;
-                default: {
-                    NSNumber * number = tryMakeDouble(ptoken->index, ptoken->length, bytes);
-                    if (number != nil) {
-                        ptoken->value = number;
-                        ptoken->type = TokenType_Value_Number;
-                    } else {
-                        NSLog(@"Unexpected char: %c", c);
-                        exit(EXIT_FAILURE);
-                    }
-                    break;
-                }
-            }
-            continue;
-        }
-        
-        if (ptoken->isString) {
-            ptoken->value = [[NSString alloc]
-                            initWithBytes:(bytes + ptoken->index + 1)
-                            length:ptoken->length - 2
-                            encoding: NSUTF8StringEncoding];
-            ptoken->type = TokenType_Value_String;
-            continue;
-        }
-        
-        if (ptoken->length == 4) {
-            if (    (bytes[ptoken->index + 0] == 't' || bytes[ptoken->index + 0] == 'T')
-                 && (bytes[ptoken->index + 1] == 'r' || bytes[ptoken->index + 1] == 'R')
-                 && (bytes[ptoken->index + 2] == 'u' || bytes[ptoken->index + 2] == 'U')
-                 && (bytes[ptoken->index + 3] == 'e' || bytes[ptoken->index + 3] == 'E'))
-            {
-                ptoken->value = [NSNumber numberWithBool:true];
-                ptoken->type = TokenType_Value_Bool;
-            }
-            
-            if (    (bytes[ptoken->index + 0] == 'n' || bytes[ptoken->index + 0] == 'N')
-                 && (bytes[ptoken->index + 1] == 'u' || bytes[ptoken->index + 1] == 'U')
-                 && (bytes[ptoken->index + 2] == 'l' || bytes[ptoken->index + 2] == 'L')
-                 && (bytes[ptoken->index + 3] == 'l' || bytes[ptoken->index + 3] == 'L'))
-            {
-                ptoken->value = [NSNull null];
-                ptoken->type = TokenType_Value_Null;
-            }
-            
-            continue;
-        }
-        
-        if (ptoken->length == 5) {
-            if (    (bytes[ptoken->index + 0] == 'f' || bytes[ptoken->index + 0] == 'F')
-                 && (bytes[ptoken->index + 1] == 'a' || bytes[ptoken->index + 1] == 'A')
-                 && (bytes[ptoken->index + 2] == 'l' || bytes[ptoken->index + 2] == 'L')
-                 && (bytes[ptoken->index + 3] == 's' || bytes[ptoken->index + 3] == 'S')
-                 && (bytes[ptoken->index + 4] == 'e' || bytes[ptoken->index + 4] == 'E'))
-            {
-                ptoken->value = [NSNumber numberWithBool:false];
-                ptoken->type = TokenType_Value_Bool;
-            }
-            continue;
-        }
-        
-        // parse double
-        
-//        NSString * str = [[NSString alloc] initWithBytes:(bytes + token->index)
-//                                 length:token->length
-//                               encoding: NSUTF8StringEncoding];
-//        NSNumberFormatter * fmt = [NSNumberFormatter new];
-//        NSNumber * number = [fmt numberFromString: str];
-        
-        NSNumber * number = tryMakeDouble(ptoken->index, ptoken->length, bytes);
-        if (number != nil) {
-            ptoken->value = number;
-            ptoken->type = TokenType_Value_Number;
-            continue;
-        }
-        
-        NSLog(@"Invalid token: %@, at index: %d", ptoken->value, i);
-        exit(EXIT_FAILURE);
+        OCToken * ptoken = ocarray_get(&(self->tokens), i);
+        parseTokenValue(ptoken, bytes, i);
     }
+}
+
+static void parseTokenValue(OCToken * ptoken, const char *bytes, int i) {
+    if (ptoken->length == 1) {
+        char c = bytes[ptoken->index];
+        switch (c) {
+            case CHAR_MAP_OPEN:
+                ptoken->type = TokenType_MapOpen;
+                break;
+            case CHAR_MAP_CLOSE:
+                ptoken->type = TokenType_MapClose;
+                break;
+            case CHAR_ARRAY_OPEN:
+                ptoken->type = TokenType_ArrayOpen;
+                break;
+            case CHAR_ARRAY_CLOSE:
+                ptoken->type = TokenType_ArrayClose;
+                break;
+            case CHAR_KEY_VALUE_DELIMITER:
+                ptoken->type = TokenType_KeyValueDelimiter;
+                break;
+            case CHAR_ELEMENT_DELIMITER:
+                ptoken->type = TokenType_ElementDelimiter;
+                break;
+            default: {
+                NSNumber * number = tryMakeDouble(ptoken->index, ptoken->length, bytes);
+                if (number != nil) {
+                    ptoken->value = number;
+                    ptoken->type = TokenType_Value_Number;
+                } else {
+                    NSLog(@"Unexpected char: %c", c);
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            }
+        }
+        return;
+    }
+    
+    if (ptoken->isString) {
+        ptoken->value = [[NSString alloc]
+                         initWithBytes:(bytes + ptoken->index + 1)
+                         length:ptoken->length - 2
+                         encoding: NSUTF8StringEncoding];
+        ptoken->type = TokenType_Value_String;
+        return;
+    }
+    
+    if (ptoken->length == 4) {
+        if (    (bytes[ptoken->index + 0] == 't' || bytes[ptoken->index + 0] == 'T')
+            && (bytes[ptoken->index + 1] == 'r' || bytes[ptoken->index + 1] == 'R')
+            && (bytes[ptoken->index + 2] == 'u' || bytes[ptoken->index + 2] == 'U')
+            && (bytes[ptoken->index + 3] == 'e' || bytes[ptoken->index + 3] == 'E'))
+        {
+            ptoken->value = [NSNumber numberWithBool:true];
+            ptoken->type = TokenType_Value_Bool;
+        }
+        
+        if (    (bytes[ptoken->index + 0] == 'n' || bytes[ptoken->index + 0] == 'N')
+            && (bytes[ptoken->index + 1] == 'u' || bytes[ptoken->index + 1] == 'U')
+            && (bytes[ptoken->index + 2] == 'l' || bytes[ptoken->index + 2] == 'L')
+            && (bytes[ptoken->index + 3] == 'l' || bytes[ptoken->index + 3] == 'L'))
+        {
+            ptoken->value = [NSNull null];
+            ptoken->type = TokenType_Value_Null;
+        }
+        
+        return;
+    }
+    
+    if (ptoken->length == 5) {
+        if (    (bytes[ptoken->index + 0] == 'f' || bytes[ptoken->index + 0] == 'F')
+            && (bytes[ptoken->index + 1] == 'a' || bytes[ptoken->index + 1] == 'A')
+            && (bytes[ptoken->index + 2] == 'l' || bytes[ptoken->index + 2] == 'L')
+            && (bytes[ptoken->index + 3] == 's' || bytes[ptoken->index + 3] == 'S')
+            && (bytes[ptoken->index + 4] == 'e' || bytes[ptoken->index + 4] == 'E'))
+        {
+            ptoken->value = [NSNumber numberWithBool:false];
+            ptoken->type = TokenType_Value_Bool;
+        }
+        return;
+    }
+    
+    // parse double
+    
+    NSNumber * number = tryMakeDouble(ptoken->index, ptoken->length, bytes);
+    if (number != nil) {
+        ptoken->value = number;
+        ptoken->type = TokenType_Value_Number;
+        return;
+    }
+    
+    NSLog(@"Invalid token: %@, at index: %d", ptoken->value, i);
+    exit(EXIT_FAILURE);
 }
 
 - (void) parseCollections {

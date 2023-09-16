@@ -48,6 +48,7 @@ import OSLog
     553_015 ticks, 23.04ms - store NSData.length into a variable for a for loop
     425_235 ticks, 17.72ms - inline isWhitespace and isDelimiter
     389_813 ticks, 16.24ms - use C functions instead of ObjC methods (message sends)
+    372_133 ticks, 15.51ms - extract token parsing to a function
  
  high %:
       Data iteration
