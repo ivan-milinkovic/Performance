@@ -113,7 +113,9 @@ NSString * desc(OCToken * token, char * bytes) {
     ocarray_deinit(&tokens);
     isInsideString = false;
     isEscape = false;
+    [stack release];
     stack = nil;
+    [key release];
     key = nil;
     result = nil;
 }

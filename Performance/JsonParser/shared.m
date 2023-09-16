@@ -9,10 +9,10 @@
 #import "Shared.h"
 
 NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes) {
-
+    
     bool hasDecimalPart = false;
     double num = 0.0;
-
+    
     // int part
     char byte = bytes[startIndex];
     bool hasMinus = byte == '-';
@@ -42,6 +42,7 @@ NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes) {
     if (hasDecimalPart) {
         
         double decimalPart = 0.0;
+        double tens = 1.0;
         
         for (int k=j; k<endIndex; k++) {
             char byte = bytes[k];
@@ -49,8 +50,8 @@ NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes) {
                 return nil;
             }
             int digit = byte - '0';
-            double exp = pow(10.0, k-j+1);
-            decimalPart += ((double) digit) / exp;
+            tens *= 10;
+            decimalPart += digit / tens;
         }
         
         num += decimalPart;

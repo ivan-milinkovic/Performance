@@ -50,6 +50,8 @@ import OSLog
     389_813 ticks, 16.24ms - use C functions instead of ObjC methods (message sends)
     372_133 ticks, 15.51ms - extract token parsing to a function
                            - Moving value parsing inside pareCollections (avoid extra loop through tokens) gave no benefit
+    353_555 ticks, 14.73ms - disable ARC
+    321_424 ticks, 13.39ms - avoid calling pow()
  
  high %:
       Data iteration
