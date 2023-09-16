@@ -10,6 +10,12 @@
 
 NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes) {
     
+//    double res = strtod(bytes + startIndex, NULL);
+//    if (res == 0.0) {
+//        printf("%f", res);
+//    }
+//    return @(res);
+
     bool hasDecimalPart = false;
     double num = 0.0;
     
