@@ -81,6 +81,8 @@ NSString * desc(OCToken * token, char * bytes) {
 
 @interface JsonParserObjcC ()
 {
+    @public
+    
     // use c array
     OCArray tokens;
     OCToken currentToken;
@@ -101,8 +103,8 @@ NSString * desc(OCToken * token, char * bytes) {
 }
 
 - (void) prepare:(int) size {
-    ocarray_init(&tokens, size, sizeof(OCToken));
-    [self resetCurrentTokenWithIndex: 0];
+    ocarray_init(&tokens, 20, sizeof(OCToken));
+    resetCurrentToken(self, 0);
     isInsideString = false;
     isEscape = false;
     stack = [[NSMutableArray alloc] init];
@@ -116,6 +118,13 @@ NSString * desc(OCToken * token, char * bytes) {
     stack = nil;
     key = nil;
     result = nil;
+}
+
+void resetCurrentToken(JsonParserObjcC * parser, int index) {
+    parser->currentToken.index = index;
+    parser->currentToken.length = 0;
+    parser->currentToken.isString = false;
+    parser->isInsideString = false;
 }
 
 - (void) resetCurrentTokenWithIndex: (int) i {
@@ -175,7 +184,7 @@ NSString * desc(OCToken * token, char * bytes) {
                     continue;
                 }
                 currentToken.length++;
-                [self finalizeCurrentTokenAtIndex: i];
+                finalizeCurrentToken(self, i);
                 continue;
             }
             
@@ -183,11 +192,11 @@ NSString * desc(OCToken * token, char * bytes) {
             continue;
         }
         
-        if ([self isWhitespace: cha]) {
+        if (isWhitespace(cha)) {
             if (currentToken.length == 0) {
                 currentToken.index++;
             } else {
-                [self finalizeCurrentTokenAtIndex: i];
+                finalizeCurrentToken(self, i);
             }
             continue;
         }
@@ -198,36 +207,37 @@ NSString * desc(OCToken * token, char * bytes) {
             continue;
         }
         
-        if ([self isDelimiter: cha]) {
-            [self finalizeCurrentTokenAtIndex: i];
+        if (isDelimiter(cha)) {
+            finalizeCurrentToken(self, i);
             currentToken.index = i;
             currentToken.length = 1;
-            [self finalizeCurrentTokenAtIndex: i];
+            finalizeCurrentToken(self, i);
             continue;
         }
         
         currentToken.length++;
     }
     
-    [self finalizeCurrentTokenAtIndex: i];
+    finalizeCurrentToken(self, i);
 }
 
-- (void) finalizeCurrentTokenAtIndex: (int) i {
-    if (currentToken.length > 0) {
-        currentToken.isString = isInsideString;
-        ocarray_add(&tokens, &currentToken, tokens.elsize);
+void finalizeCurrentToken(JsonParserObjcC* parser, int i) {
+    if (parser->currentToken.length > 0) {
+        parser->currentToken.isString = parser->isInsideString;
+        ocarray_add(&(parser->tokens), &(parser->currentToken), parser->tokens.elsize);
     }
-    [self resetCurrentTokenWithIndex: i + 1]; // don't reset the token if it wasn't updated, just reuse the existing instance and update the index
+    // don't reset the token if it wasn't updated, just reuse the existing instance and update the index
+    resetCurrentToken(parser, i + 1);
 }
 
-- (bool) isWhitespace: (char) cha {
+bool isWhitespace(char cha) {
     return cha == CHAR_SPACE
         || cha == CHAR_NEWLINE
         || cha == CHAR_CARRIAGE
         || cha == CHAR_TAB;
 }
 
-- (bool) isDelimiter: (char) cha {
+bool isDelimiter(char cha) {
     return cha == CHAR_MAP_OPEN
         || cha == CHAR_MAP_CLOSE
         || cha == CHAR_ARRAY_OPEN
