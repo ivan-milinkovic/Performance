@@ -59,6 +59,10 @@ import OSLog
       Array allocations / resizing
       Double parsing (default checks locales)
       Swift uses dynamically linked implementations, links to system libraries, DYLD-Stub
+ 
+ todo:
+        disable arc for shared.m, and test if other parsers still work
+        try C bitfield in token
  */
 
 func testJsonParser() {

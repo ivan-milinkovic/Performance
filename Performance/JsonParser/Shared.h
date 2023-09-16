@@ -15,7 +15,7 @@
 #define CHAR_KEY_VALUE_DELIMITER ':'
 #define CHAR_ELEMENT_DELIMITER ','
 
-typedef NS_ENUM(short, TokenType) {
+typedef NS_ENUM(char, TokenType) {
     TokenType_Unresolved,
     TokenType_MapOpen,
     TokenType_MapClose,
