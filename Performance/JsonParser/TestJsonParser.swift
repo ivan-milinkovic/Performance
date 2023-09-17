@@ -78,8 +78,8 @@ func testJsonParser() {
     let runJsonParserCChar     = false
     let runJsonParserIndexes   = false
     let runJsonParserObjcNoArc = false
-    let runJsonParserObjcC     = false
-    let runJsonParserOneIter   = true
+    let runJsonParserObjcC     = true
+    let runJsonParserOneIter   = false
     
 //    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
