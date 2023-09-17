@@ -3,19 +3,19 @@ import OSLog
 
 func testJsonParser() {
     
-    let runJsonParserValues    = false
-    let runJsonParserUnicode   = false
-    let runJsonParserAscii     = false
-    let runJSONDecoder         = false
-    let runJSONSerialization   = false
-    let runJsonParserObjc      = false
-    let runJsonParserBuffers   = false
-    let runJsonParserFopen     = false
-    let runJsonParserCChar     = false
-    let runJsonParserIndexes   = false
-    let runJsonParserObjcNoArc = false
-    let runJsonParserObjcC     = true
-    let runJsonParserOneIter   = true
+    let runJsonParserValues        = false
+    let runJsonParserUnicode       = false
+    let runJsonParserAscii         = false
+    let runJSONDecoder             = false
+    let runJsonParserObjc          = false
+    let runJsonParserBuffers       = false
+    let runJsonParserFopen         = false
+    let runJsonParserCChar         = false
+    let runJsonParserObjcNoArc     = false
+    let runJsonParserIndexes       = true
+    let runJSONSerialization       = true
+    let runJsonParserObjcC         = true
+    let runJsonParserOneIter       = false
     let runJsonParserOneIterCChar  = true
     
 //    let jsonFile = "testJson.json"
@@ -40,7 +40,7 @@ func testJsonParser() {
         let jsonParser = JsonParserOneIterCChar()
         let res = jsonParser.parse(data: data)
         Profiler.end(0)
-        print("JsonParserOneIter2:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
+        print("JsonParserOneIterCChar:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
     
     if runJsonParserObjcC {
@@ -61,10 +61,10 @@ func testJsonParser() {
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserObjc()
-        let _ = jsonParser.parse(data: data)
+        let res = jsonParser.parse(data: data)
         Profiler.end(0)
         signposter.endInterval("JsonParserObjc", state)
-        print("JsonParserObjc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserObjc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
     
     if runJsonParserIndexes {
@@ -85,10 +85,10 @@ func testJsonParser() {
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserObjcNoArc()
-        let _ = jsonParser.parse(data: data)
+        let res = jsonParser.parse(data: data)
         Profiler.end(0)
         signposter.endInterval("JsonParserObjcNoArc", state)
-        print("JsonParserObjcNoArc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserObjcNoArc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
     
     if runJsonParserUnicode {
@@ -97,9 +97,9 @@ func testJsonParser() {
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserUnicode()
-        let _ = jsonParser.parse(jsonString: jsonString)
+        let res = jsonParser.parse(jsonString: jsonString)
         Profiler.end(0)
-        print("JsonParserUnicode:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserUnicode:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
 
     if runJsonParserAscii {
@@ -107,18 +107,18 @@ func testJsonParser() {
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserAscii()
-        let _ = jsonParser.parse(data: data)
+        let res = jsonParser.parse(data: data)
         Profiler.end(0)
-        print("JsonParserAscii:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserAscii:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
 
     if runJsonParserFopen {
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserFopen()
-        let _ = jsonParser.parse(filePath: inputFileUrl.path())
+        let res = jsonParser.parse(filePath: inputFileUrl.path())
         Profiler.end(0)
-        print("JsonParserFopen:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserFopen:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
 
     if runJsonParserCChar {
@@ -127,10 +127,10 @@ func testJsonParser() {
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserCChar()
-        let _ = jsonParser.parse(data: data)
+        let res = jsonParser.parse(data: data)
         Profiler.end(0)
         signposter.endInterval("JsonParserCChar", state)
-        print("JsonParserCChar:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserCChar:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
     
     if runJsonParserBuffers {
@@ -138,9 +138,9 @@ func testJsonParser() {
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserBuffers()
-        let _ = jsonParser.parse(data: data)
+        let res = jsonParser.parse(data: data)
         Profiler.end(0)
-        print("JsonParserBuffers:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserBuffers:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
 
     if runJsonParserValues {
@@ -148,18 +148,18 @@ func testJsonParser() {
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserValues()
-        let _ = jsonParser.parse(data: data)
+        let res = jsonParser.parse(data: data)
         Profiler.end(0)
-        print("JsonParserValues:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserValues:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
 
     if runJSONDecoder {
         let data = try! Data.init(contentsOf: inputFileUrl)
         Profiler.reset()
         Profiler.start(0)
-        let _ = try! JSONDecoder().decode([[String:Double]].self, from: data)
+        let res = try! JSONDecoder().decode([[String:Double]].self, from: data)
         Profiler.end(0)
-        print("JSONDecoder:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JSONDecoder:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
 
     if runJSONSerialization {

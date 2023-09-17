@@ -107,8 +107,16 @@ final class JsonParserOneIterCChar {
     
     func parse(data: Data) -> Any {
         self.data = data
-        var dataIter = data.makeIterator()
-        while let byte = dataIter.next() {
+        
+//        var dataIter = data.makeIterator()
+//        while let byte = dataIter.next() {
+        
+        let ptr = UnsafeMutableRawBufferPointer.allocate(byteCount: data.count, alignment: 1)
+        defer { ptr.deallocate() }
+        data.copyBytes(to: ptr)
+        var i = 0; while i < data.count {
+            let byte = ptr[i]
+            
             let char = CChar(byte)
             switch currentState {
             case .any                  : handleAnyValue(char)
