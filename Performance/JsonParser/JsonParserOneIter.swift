@@ -4,7 +4,7 @@ import Foundation
 // problem: chars get swallowed between state changes, because iterator always advances
 // fix: remember carry over char and don't do iter.next() if it is present, just process the current one with the new state
 
-class JsonParser0 {
+class JsonParserOneIter {
     
     enum ParserState {
         case anyValue(AnyValue)

@@ -43,11 +43,11 @@ import OSLog
  JsonParserObjcC
   1_771_327 ticks, 73.81ms - initial C implementation with array resizing (time lost in repeated mallocs and memmove)
     674_234 ticks, 28.09ms - precalculate safe size for token array based on input data size (avoid malloc)
-    698_234 ticks, 29.09ms - avoid using collection wrappers
+    698_234 ticks, 29.09ms - avoid using collection wrappers (JsonMap, JsonArray, avoids extra allocations/deallocations)
     653_262 ticks, 27.22ms - use realloc instaed of pre-calculating and allocating the full array size
     553_015 ticks, 23.04ms - store NSData.length into a variable for a for loop
     425_235 ticks, 17.72ms - inline isWhitespace and isDelimiter
-    389_813 ticks, 16.24ms - use C functions instead of ObjC methods (message sends)
+    389_813 ticks, 16.24ms - use C functions instead of ObjC methods (avoid message sends)
     372_133 ticks, 15.51ms - extract token parsing to a function
                            - Moving value parsing inside pareCollections (avoid extra loop through tokens) gave no benefit
     353_555 ticks, 14.73ms - disable ARC
@@ -71,19 +71,30 @@ func testJsonParser() {
     let runJsonParserUnicode   = false
     let runJsonParserAscii     = false
     let runJSONDecoder         = false
+    let runJSONSerialization   = false
     let runJsonParserObjc      = false
-    let runJsonParserObjcC     = true
-    let runJsonParserObjcNoArc = false
     let runJsonParserBuffers   = false
     let runJsonParserFopen     = false
     let runJsonParserCChar     = false
     let runJsonParserIndexes   = false
-    let runJSONSerialization   = false
+    let runJsonParserObjcNoArc = false
+    let runJsonParserObjcC     = false
+    let runJsonParserOneIter   = true
     
 //    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
     let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
     let signposter = OSSignposter()
+    
+    if runJsonParserOneIter {
+        Profiler.reset()
+        Profiler.start(0)
+        
+//        let jsonParser = JsonParserOneIter()
+//        let _ = jsonParser.parse(data: data)
+        Profiler.end(0)
+        print("JsonParserOneIter:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+    }
     
     if runJsonParserObjc {
         let data = try! Data(contentsOf: inputFileUrl)

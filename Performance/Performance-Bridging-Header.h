@@ -5,3 +5,4 @@
 #import "JsonParserObjc.h"
 #import "JsonParserObjcNoArc.h"
 #import "JsonParserObjcC.h"
+#import "ObjcAllocations.h"
