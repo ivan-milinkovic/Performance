@@ -66,7 +66,8 @@ JsonParserOneIterCChar:
 high %:
     String iteration
     Data iteration
-    String / Character
+    String / Character init
+    String append
     Array allocations / resizing
     Double parsing (default checks locales)
     Swift uses dynamically linked implementations, links to system libraries, DYLD-Stub
