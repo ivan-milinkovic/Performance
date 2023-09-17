@@ -34,7 +34,6 @@ id root(int* index, const char * bytes, int len, char ** error) {
     id res = nil;
     skipWhitespace(index, bytes, len);
     char c = bytes[*index];
-    printc(c)
     switch (c) {
         case 'n': {
             res = parseNull(index, bytes, len, error);
@@ -56,10 +55,23 @@ id root(int* index, const char * bytes, int len, char ** error) {
             res = parseMap(index, bytes, len, error);
             break;
         }
+        case '[': {
+            res = parseArray(index, bytes, len, error);
+            break;
+        }
         default: {
-            snprintf(*error, 100, "Unexpected character at %d", *index);
+            if (is_num_char(c)) {
+                res = parseNumber(index, bytes, len, error);
+                break;
+            }
+            
+//            snprintf(*error, 100, "Unexpected character at %d", *index);
             return nil;
         }
+    }
+    
+    if (*error) {
+        return nil;
     }
     
     // check there are no more elements after the root
@@ -101,8 +113,15 @@ id innerParse(int* index, const char * bytes, int len, char ** error) {
             res = parseMap(index, bytes, len, error);
             break;
         }
-        case '}': {
-            return nil; // allow parent map to close itself
+            
+        default: {
+            if (is_num_char(c)) {
+                res = parseNumber(index, bytes, len, error);
+                break;
+            }
+            
+            *error = "innerParse: unexpected character";
+            return nil;
         }
     }
     
@@ -124,6 +143,10 @@ bool inc_validate_index(int* index, int len, char ** error, char * error_message
         return false;
     }
     return true;
+}
+
+void skipWhitespace(int* index, const char * bytes, int len) {
+    while(isWhitespace(bytes[*index]) && inc_index < len) { }
 }
 
 bool skip_whitespace_and_validate_index(int* index, const char * bytes, int len, char ** error, char * error_message) {
@@ -191,6 +214,32 @@ NSString * parseString(int* index, const char * bytes, int len, char ** error) {
     return str;
 }
 
+bool is_num_char(char c) {
+    return c == '+' || c == '-' || c == '.'
+        || c == '0' || c == '1' || c == '2' || c == '3' || c == '4'
+        || c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
+}
+
+NSNumber * parseNumber(int* index, const char * bytes, int len, char ** error) {
+    int i_start = *index;
+    int num_len = 0;
+    
+    while (1) {
+        char c = bytes[*index];
+        if (!is_num_char(c)) {
+            break;
+        }
+        num_len++;
+        inc_index;
+    }
+    
+    if (num_len == 0) {
+        return nil;
+    }
+    
+    return tryMakeDouble(i_start, num_len, bytes);
+}
+
 NSDictionary * parseMap(int* index, const char * bytes, int len, char ** error) {
     
     NSMutableDictionary * map = [[NSMutableDictionary alloc] init];
@@ -201,7 +250,6 @@ NSDictionary * parseMap(int* index, const char * bytes, int len, char ** error) 
     
     // check if map is empty
     char c = bytes[*index];
-    printc(c)
     if (c == '}') {
         inc_index;
         return map;
@@ -214,6 +262,10 @@ NSDictionary * parseMap(int* index, const char * bytes, int len, char ** error) 
     
     bool spin = true;
     while (spin) {
+        if (!skip_whitespace_and_validate_index(index, bytes, len, error, "Map is incomplete")) {
+            return nil;
+        }
+        
         NSString * key = parseString(index, bytes, len, error);
         if (*error) { return nil; }
         
@@ -232,18 +284,21 @@ NSDictionary * parseMap(int* index, const char * bytes, int len, char ** error) 
         // parse value
         id value = innerParse(index, bytes, len, error);
         if (*error) { return nil; }
-        
-        if (!skip_whitespace_and_validate_index(index, bytes, len, error, "Map is incomplete")) {
+        if (value == nil) {
+            *error = "Map value is missing";
             return nil;
         }
-        
         [map setValue:value forKey:key];
         
         // continue or not
+        if (!skip_whitespace_and_validate_index(index, bytes, len, error, "Map is incomplete")) {
+            return nil;
+        }
         c = bytes[*index];
         
         switch (c) {
             case ',':
+                inc_index;
                 continue; // parse more key-value pairs
             case '}':
                 spin = false; // close the map
@@ -259,10 +314,54 @@ NSDictionary * parseMap(int* index, const char * bytes, int len, char ** error) 
     return map;
 }
 
-
-
-void skipWhitespace(int* index, const char * bytes, int len) {
-    while(isWhitespace(bytes[*index]) && inc_index < len) { }
+NSArray * parseArray(int* index, const char * bytes, int len, char ** error) {
+    // skip the opening bracket [ and the whitespace after it
+    inc_index;
+    if (!skip_whitespace_and_validate_index(index, bytes, len, error, "Array is incomplete")) {
+        return nil;
+    }
+    
+    NSMutableArray * array = [[NSMutableArray alloc] init];
+    
+    char c = bytes[*index];
+    if (c == ']') {
+        inc_index;
+        return array;
+    }
+    
+    bool spin = true;
+    while(spin) {
+        if (!skip_whitespace_and_validate_index(index, bytes, len, error, "Array is incomplete")) {
+            return nil;
+        }
+        
+        id value = innerParse(index, bytes, len, error);
+        if (value == nil) {
+            *error = "Array value is missing";
+            return nil;
+        }
+        
+        // continue?
+        inc_index;
+        c = bytes[*index];
+        switch (c) {
+            case ',':
+                inc_index;
+                continue; // parse more key-value pairs
+            case ']':
+                inc_index;
+                spin = false; // close the map
+                break;
+            default:
+                *error = "Array expects an element delimiter \",\" or a closing square bracket \"]\"";
+                return nil;
+        }
+        
+        [array addObject: value];
+    }
+    
+    return array;
 }
+
 
 @end

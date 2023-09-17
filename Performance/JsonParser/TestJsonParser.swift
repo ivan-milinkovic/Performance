@@ -26,7 +26,9 @@ func testJsonParser() {
     
     if runJsonParserNestedLoops {
 //        let data = try! Data(contentsOf: inputFileUrl)
-        let data = #"{"key1":"val1"}"#.data(using: .utf8)!
+//        let data = #"{"key1":"val1","key2":"val2"}"#.data(using: .utf8)!
+//        let data = #"[123]"#.data(using: .utf8)!
+        let data = #"[ {}, {} ]"#.data(using: .utf8)!
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserNestedLoops()
