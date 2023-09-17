@@ -16,7 +16,7 @@ func testJsonParser() {
     let runJsonParserObjcNoArc = false
     let runJsonParserObjcC     = true
     let runJsonParserOneIter   = true
-    let runJsonParserOneIter2  = true
+    let runJsonParserOneIterCChar  = true
     
 //    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
@@ -33,11 +33,11 @@ func testJsonParser() {
         print("JsonParserOneIter:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
     
-    if runJsonParserOneIter2 {
+    if runJsonParserOneIterCChar {
         let data = try! Data(contentsOf: inputFileUrl)
         Profiler.reset()
         Profiler.start(0)
-        let jsonParser = JsonParserOneIter2()
+        let jsonParser = JsonParserOneIterCChar()
         let res = jsonParser.parse(data: data)
         Profiler.end(0)
         print("JsonParserOneIter2:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))

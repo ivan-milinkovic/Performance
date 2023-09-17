@@ -5,7 +5,7 @@ import Foundation
 // slow: string iterator, string append
 
 
-final class JsonParserOneIter2 {
+final class JsonParserOneIterCChar {
     
     enum ParserState {
         case any(AnyValue)
@@ -19,7 +19,7 @@ final class JsonParserOneIter2 {
             case .any(let value)       : return value.value
             case .map(let map)         : return map.value
             case .array(let array)     : return array.value
-            case .key(let key)         : return key.value
+            case .key(let key)         : return key.finalValue
             case .literal(let literal) : return literal.finalValue
             }
         }
@@ -57,8 +57,17 @@ final class JsonParserOneIter2 {
     }
     
     class MapKey {
-        var value = ""
+        var index = 0
+        var length = 0
         var escapeFlag = false
+        var finalValue : String = ""
+        init(index: Int) {
+            self.index = index
+        }
+        func resolveValue(_ data: Data) {
+            let subdata = data[index..<index+length]
+            finalValue = String(data: subdata, encoding: .utf8)!
+        }
     }
     
     class Literal {
@@ -100,7 +109,7 @@ final class JsonParserOneIter2 {
         self.data = data
         var dataIter = data.makeIterator()
         while let byte = dataIter.next() {
-            let char = Character(UnicodeScalar(byte))
+            let char = CChar(byte)
             switch currentState {
             case .any                  : handleAnyValue(char)
             case .map(let map)         : handleMap(map, char)
@@ -133,7 +142,7 @@ final class JsonParserOneIter2 {
         parentState.consume(currentState)
     }
     
-    private func handleAnyValue(_ char: Character) {
+    private func handleAnyValue(_ char: CChar) {
         
         if TokenChar.isWhitespace(char) { return }
 
@@ -146,7 +155,7 @@ final class JsonParserOneIter2 {
             let nextState = ParserState.array(Array())
             pushState(nextState)
             
-        case TokenChar.stringOpenClose:
+        case TokenChar.stringDelimiter:
             let lit = Literal(index: i+1)
             lit.isString = true
             let nextState = ParserState.literal(lit)
@@ -158,14 +167,14 @@ final class JsonParserOneIter2 {
         }
     }
     
-    private func handleMap(_ map: Map, _ char: Character) {
+    private func handleMap(_ map: Map, _ char: CChar) {
         
         if TokenChar.isWhitespace(char) { return }
         
         if map.key == nil {
             switch char {
-            case TokenChar.stringOpenClose:
-                let mapKey = MapKey()
+            case TokenChar.stringDelimiter:
+                let mapKey = MapKey(index: i)
                 pushState(.key(mapKey))
                 
             case TokenChar.mapClose:
@@ -182,33 +191,22 @@ final class JsonParserOneIter2 {
             switch char {
             case TokenChar.keyValueDelimiter:
                 pushState(.any(AnyValue()))
-//                pushState(.literal(Literal(firstChar: nil)))
             default:
                 fatalError("unexpected token: \(char)")
             }
         }
-//        else {
-//            switch char {
-//            case TokenString.elementDelimiter:
-//                return
-//            case TokenString.mapClose:
-//                popState()
-//            default:
-//                fatalError("unexpected token: \(char)")
-//            }
-//        }
     }
     
     private func startMap() {
         let mapState = ParserState.map(Map())
         pushState(mapState)
-        let keyState = ParserState.key(MapKey())
+        let keyState = ParserState.key(MapKey(index: i))
         pushState(keyState)
     }
     
     
     // array is not used
-    private func handleArray(_ array: Array, char: Character) {
+    private func handleArray(_ array: Array, char: CChar) {
         
         if TokenChar.isWhitespace(char) { return }
         
@@ -227,7 +225,7 @@ final class JsonParserOneIter2 {
         }
     }
     
-    private func handleKey(_ key: MapKey, char: Character) {
+    private func handleKey(_ key: MapKey, char: CChar) {
         if key.escapeFlag { return } // skip to next char
         
         // Accept new char
@@ -237,33 +235,32 @@ final class JsonParserOneIter2 {
             return
         }
         
-        if char == TokenChar.stringOpenClose {
+        if char == TokenChar.stringDelimiter {
+            key.resolveValue(data)
             popState()
             return
         }
         
-        key.value.append(char)
+        key.length += 1
         key.escapeFlag = false
     }
     
-    private func handleLiteral(_ literal: Literal, char: Character) {
+    private func handleLiteral(_ literal: Literal, char: CChar) {
         if literal.length == 0 {
-//            if TokenString.isWhitespace(char) { return }
-            literal.isString = (char == TokenChar.stringOpenClose)
+            literal.isString = (char == TokenChar.stringDelimiter)
             if literal.isString { return }
             literal.length += 1
             return
         }
         
-        if TokenChar.isWhitespace(char) || char == TokenChar.stringOpenClose || char == TokenChar.elementDelimiter {
+        if TokenChar.isWhitespace(char) || char == TokenChar.stringDelimiter || char == TokenChar.elementDelimiter {
             literal.resolveValue(data)
             popState()
             popState() // pop any
             return
         }
         
-        let collectionClosingChars = [TokenChar.mapClose, TokenChar.arrayClose]
-        if collectionClosingChars.contains(char) {
+        if char == TokenChar.mapClose || char == TokenChar.arrayClose {
             literal.resolveValue(data)
             popState() // pop self
             popState() // pop parent any
@@ -275,24 +272,25 @@ final class JsonParserOneIter2 {
         literal.length += 1
     }
     
-    struct TokenChar {
+    private struct TokenChar {
         
-        static let mapOpen : Character = "{"
-        static let mapClose : Character = "}"
+        static let space = CChar(32) // " "
+        static let newline = CChar(10) // "\n" line feed
+        static let carriage = CChar(13) // "\r"
+        static let tab = CChar(9) // "\t"
         
-        static let arrayOpen : Character = "["
-        static let arrayClose : Character = "]"
+        static let stringDelimiter = CChar(34) // "\""
+        static let stringEscape = CChar(92) // "\\"
         
-        static let keyValueDelimiter : Character = ":"
-        static let elementDelimiter : Character = ","
-        static let stringOpenClose : Character = "\""
-        static let stringEscape : Character = "\\"
+        static let mapOpen = CChar(123) // "{"
+        static let mapClose = CChar(125) // "}"
+        static let arrayOpen = CChar(91) // "["
+        static let arrayClose = CChar(93) // "]"
+        static let keyValueDelimiter = CChar(58) // ":"
+        static let elementDelimiter = CChar(44) // ","
         
-        static let newLine : Character = "\n"
-        static let carriageReturn : Character = "\r"
-        
-        static func isWhitespace(_ char: Character) -> Bool {
-            char == newLine || char == carriageReturn
+        static func isWhitespace(_ char: CChar) -> Bool {
+            char == space || char == newline || char == carriage || char == tab
         }
     }
     

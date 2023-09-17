@@ -13,6 +13,7 @@ JsonParserObjcNoArc  1_000_709 ticks,  41.70ms
 JsonParserBuffers      941_253 ticks,  39.22ms
 JsonParserFopen        818_944 ticks,  34.12ms
 JsonParserCChar        817_413 ticks,  34.06ms
+JsonParserOneIterCChar 680_363 ticks,  28.35ms
 JsonParserIndexes      445_691 ticks,  18.57ms
 JsonParserObjcC        321_424 ticks,  13.39ms
 JSONSerialization      164_948 ticks,   6.87ms
@@ -55,12 +56,14 @@ JsonParserObjcC
 
 JsonParserOneIter:
   6_334_768 ticks, 263.95ms - initial using swift standard library
-JsonParserOneIter2:
+JsonParserOneIterCChar:
   1_826_720 ticks,  76.11ms - use Data iterator instead of String iterator
   1_446_843 ticks,  60.29ms - avoid appending to string, use index and length and resolve value at the end
+    680_363 ticks,  28.35ms - avoid using strings
 
 
 high %:
+    String iteration
     Data iteration
     String / Character
     Array allocations / resizing

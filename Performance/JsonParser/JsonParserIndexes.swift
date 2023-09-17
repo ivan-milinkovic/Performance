@@ -140,8 +140,6 @@ private typealias CUChar = CUnsignedChar
 
 private struct TokenChar {
     
-//    static let delimiters : [Character] = [mapOpen, mapClose, arrayOpen, arrayClose, keyValueDelimiter, elementDelimiter]
-    
     static let space = CUChar(32) // " "
     static let newline = CUChar(10) // "\n" line feed
     static let carriage = CUChar(13) // "\r"
