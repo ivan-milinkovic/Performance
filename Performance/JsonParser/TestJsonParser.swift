@@ -54,6 +54,12 @@ import OSLog
     353_555 ticks, 14.73ms - disable ARC
     321_424 ticks, 13.39ms - avoid calling pow()
  
+ JsonParserOneIter:
+    7_394_511 ticks, 308.10ms - initial using swift standard library
+    1_826_720 ticks,  76.11ms - use Data iterator instead of String iterator
+    1_446_843 ticks,  60.29ms - avoid appending to string, use index and length and resolve value at the end
+ 
+ 
  high %:
       Data iteration
       String / Character
@@ -89,29 +95,14 @@ func testJsonParser() {
     
     if runJsonParserOneIter {
         let str = try! String(contentsOf: inputFileUrl)
-//        let data = try! Data(contentsOf: inputFileUrl)
-//        let str = #"{"key":"val"}"#
-//        let str = #"["123", 234, 345]"#
-//        let str = #"[ { "lat1": 123.0, "lon": 234, "lat2": 123, "lon2": 234} ]"#
-//        let str = #"[{"lat1": 123.0}]"#
+        let data = try! Data(contentsOf: inputFileUrl)
+
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserOneIter()
-        let res = jsonParser.parse(string: str)
+        let res = jsonParser.parse(data: data)
         Profiler.end(0)
         print("JsonParserOneIter:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
-    }
-    
-    if runJsonParserObjc {
-        let data = try! Data(contentsOf: inputFileUrl)
-        let state = signposter.beginInterval("JsonParserObjc")
-        Profiler.reset()
-        Profiler.start(0)
-        let jsonParser = JsonParserObjc()
-        let _ = jsonParser.parse(data: data)
-        Profiler.end(0)
-        signposter.endInterval("JsonParserObjc", state)
-        print("JsonParserObjc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
     
     if runJsonParserObjcC {
@@ -124,6 +115,18 @@ func testJsonParser() {
         Profiler.end(0)
         signposter.endInterval("JsonParserObjcC", state)
         print("JsonParserObjcC:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of: res))
+    }
+    
+    if runJsonParserObjc {
+        let data = try! Data(contentsOf: inputFileUrl)
+        let state = signposter.beginInterval("JsonParserObjc")
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserObjc()
+        let _ = jsonParser.parse(data: data)
+        Profiler.end(0)
+        signposter.endInterval("JsonParserObjc", state)
+        print("JsonParserObjc:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
     }
     
     if runJsonParserIndexes {

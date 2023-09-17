@@ -20,7 +20,7 @@ final class JsonParserOneIter {
             case .map(let map)         : return map.value
             case .array(let array)     : return array.value
             case .key(let key)         : return key.value
-            case .literal(let literal) : return literal.value
+            case .literal(let literal) : return literal.finalValue
             }
         }
         
@@ -62,15 +62,24 @@ final class JsonParserOneIter {
     }
     
     class Literal {
-        var value : String = ""
+        var index = 0
+        var length = 0
         var isString = false // needs to handle escaping in the content of value
         var escapeFlag = false
-        init(firstChar: Character? = nil) {
-            if let firstChar {
-                self.value.append(firstChar)
-            }
-            self.isString = (firstChar == TokenString.stringOpenClose)
+        var finalValue : Any = 0
+        init(index: Int) {
+            self.index = index
             self.escapeFlag = false
+        }
+        func resolveValue(_ data: Data) {
+            if isString {
+                let subdata = data[index..<index+length]
+                finalValue = String(data: subdata, encoding: .utf8)!
+            }
+            else {
+                finalValue = tryMakeDouble(startIndex: index, length: length, data: data) ?? 0.0
+            }
+            // todo: parse false/true/null
         }
     }
     
@@ -84,10 +93,14 @@ final class JsonParserOneIter {
         pushState(initialState)
     }
     
-    func parse(string: String) -> Any {
-        
-        var strIter = string.makeIterator()
-        while let char = strIter.next() {
+    var data: Data!
+    var i = 0
+    
+    func parse(data: Data) -> Any {
+        self.data = data
+        var dataIter = data.makeIterator()
+        while let byte = dataIter.next() {
+            let char = Character(UnicodeScalar(byte))
             switch currentState {
             case .any                  : handleAnyValue(char)
             case .map(let map)         : handleMap(map, char)
@@ -95,6 +108,7 @@ final class JsonParserOneIter {
             case .key(let key)         : handleKey(key, char: char)
             case .literal(let literal) : handleLiteral(literal, char: char)
             }
+            i += 1
         }
         
         // The stack always has .any as root
@@ -133,13 +147,13 @@ final class JsonParserOneIter {
             pushState(nextState)
             
         case TokenString.stringOpenClose:
-            let lit = Literal()
+            let lit = Literal(index: i+1)
             lit.isString = true
             let nextState = ParserState.literal(lit)
             pushState(nextState)
         
         default:
-            let nextState = ParserState.literal(Literal(firstChar: char))
+            let nextState = ParserState.literal(Literal(index: i))
             pushState(nextState)
         }
     }
@@ -233,15 +247,16 @@ final class JsonParserOneIter {
     }
     
     private func handleLiteral(_ literal: Literal, char: Character) {
-        if literal.value.isEmpty {
+        if literal.length == 0 {
 //            if TokenString.isWhitespace(char) { return }
             literal.isString = (char == TokenString.stringOpenClose)
             if literal.isString { return }
-            literal.value.append(char)
+            literal.length += 1
             return
         }
         
         if TokenString.isWhitespace(char) || char == TokenString.stringOpenClose || char == TokenString.elementDelimiter {
+            literal.resolveValue(data)
             popState()
             popState() // pop any
             return
@@ -249,6 +264,7 @@ final class JsonParserOneIter {
         
         let collectionClosingChars = [TokenString.mapClose, TokenString.arrayClose]
         if collectionClosingChars.contains(char) {
+            literal.resolveValue(data)
             popState() // pop self
             popState() // pop parent any
             popState() // pop parent collection
@@ -256,7 +272,7 @@ final class JsonParserOneIter {
             return
         }
         
-        literal.value.append(char)
+        literal.length += 1
     }
     
     struct TokenString {
