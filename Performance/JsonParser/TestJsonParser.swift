@@ -4,7 +4,8 @@ import OSLog
 /*
  coords_10_000.json release
  
- JsonParserValues:   12_616_383 ticks, 525.68ms
+ JsonParserValues    12_616_383 ticks, 525.68ms
+ JsonParserOneIter    7_394_511 ticks, 308.10ms
  JsonParserUnicode    2_343_682 ticks,  97.65ms
  JsonParserAscii      2_339_993 ticks,  97.50ms
  JSONDecoder          1_856_054 ticks,  77.34ms
@@ -79,7 +80,7 @@ func testJsonParser() {
     let runJsonParserIndexes   = false
     let runJsonParserObjcNoArc = false
     let runJsonParserObjcC     = true
-    let runJsonParserOneIter   = false
+    let runJsonParserOneIter   = true
     
 //    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
@@ -87,13 +88,18 @@ func testJsonParser() {
     let signposter = OSSignposter()
     
     if runJsonParserOneIter {
+        let str = try! String(contentsOf: inputFileUrl)
+//        let data = try! Data(contentsOf: inputFileUrl)
+//        let str = #"{"key":"val"}"#
+//        let str = #"["123", 234, 345]"#
+//        let str = #"[ { "lat1": 123.0, "lon": 234, "lat2": 123, "lon2": 234} ]"#
+//        let str = #"[{"lat1": 123.0}]"#
         Profiler.reset()
         Profiler.start(0)
-        
-//        let jsonParser = JsonParserOneIter()
-//        let _ = jsonParser.parse(data: data)
+        let jsonParser = JsonParserOneIter()
+        let res = jsonParser.parse(string: str)
         Profiler.end(0)
-        print("JsonParserOneIter:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string)
+        print("JsonParserOneIter:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
     
     if runJsonParserObjc {

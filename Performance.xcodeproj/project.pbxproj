@@ -12,6 +12,7 @@
 		2C0A629E2AB37C9500CB8E1F /* shared.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0A629D2AB37C9500CB8E1F /* shared.m */; };
 		2C0A62A02AB72ACC00CB8E1F /* Allocations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0A629F2AB72ACC00CB8E1F /* Allocations.swift */; };
 		2C0A62A32AB72B9E00CB8E1F /* ObjcAllocations.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0A62A22AB72B9E00CB8E1F /* ObjcAllocations.m */; };
+		2C0A62A42AB72D9C00CB8E1F /* JsonParserOneIter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CEE2A3B7450006CFE4B /* JsonParserOneIter.swift */; };
 		2C228BF22A463EA400D18786 /* TestIterSpeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C228BF12A463EA400D18786 /* TestIterSpeed.swift */; };
 		2C286F232A569635008B76A1 /* TestTimeMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C286F222A569635008B76A1 /* TestTimeMeasurement.swift */; };
 		2C286F252A596A3B008B76A1 /* Profiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C286F242A596A3B008B76A1 /* Profiler.swift */; };
@@ -307,6 +308,7 @@
 				2CCA0BD92AA373BD00F67581 /* JsonParserIndexes.swift in Sources */,
 				2CC8C1DB2A4648C500EFF8EF /* JsonParserAscii.swift in Sources */,
 				2C228BF22A463EA400D18786 /* TestIterSpeed.swift in Sources */,
+				2C0A62A42AB72D9C00CB8E1F /* JsonParserOneIter.swift in Sources */,
 				2C0769FF2AAB639C00C402AF /* JsonParserObjcNoArc.m in Sources */,
 				2C6EEAC52A2A83F200EF3BDA /* main.swift in Sources */,
 				2CEE8F822AA9D67C00A55F7A /* JsonParserObjc.m in Sources */,
