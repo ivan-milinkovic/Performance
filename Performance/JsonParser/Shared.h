@@ -32,4 +32,6 @@ typedef NS_ENUM(char, TokenType) {
 @class NSNumber;
 NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes);
 
+bool isWhitespace(char cha);
+
 #endif /* Shared_h */

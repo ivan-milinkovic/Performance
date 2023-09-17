@@ -213,13 +213,6 @@ void finalizeCurrentToken(__unsafe_unretained JsonParserObjcC * parser, int i) {
     resetCurrentToken(parser, i + 1);
 }
 
-bool isWhitespace(char cha) {
-    return cha == CHAR_SPACE
-        || cha == CHAR_NEWLINE
-        || cha == CHAR_CARRIAGE
-        || cha == CHAR_TAB;
-}
-
 bool isDelimiter(char cha) {
     return cha == CHAR_MAP_OPEN
         || cha == CHAR_MAP_CLOSE

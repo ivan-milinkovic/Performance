@@ -69,3 +69,12 @@ NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes) {
     
     return [NSNumber numberWithDouble:num];
 }
+
+
+bool isWhitespace(char cha) {
+    return cha == CHAR_SPACE
+        || cha == CHAR_NEWLINE
+        || cha == CHAR_CARRIAGE
+        || cha == CHAR_TAB;
+}
+

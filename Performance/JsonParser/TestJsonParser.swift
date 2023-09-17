@@ -12,16 +12,29 @@ func testJsonParser() {
     let runJsonParserFopen         = false
     let runJsonParserCChar         = false
     let runJsonParserObjcNoArc     = false
-    let runJsonParserIndexes       = true
-    let runJSONSerialization       = true
-    let runJsonParserObjcC         = true
+    let runJsonParserIndexes       = false
+    let runJSONSerialization       = false
+    let runJsonParserObjcC         = false
     let runJsonParserOneIter       = false
-    let runJsonParserOneIterCChar  = true
+    let runJsonParserOneIterCChar  = false
+    let runJsonParserNestedLoops   = true
     
 //    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
     let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
     let signposter = OSSignposter()
+    
+    if runJsonParserNestedLoops {
+//        let data = try! Data(contentsOf: inputFileUrl)
+        let data = #"{"key1":"val1"}"#.data(using: .utf8)!
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserNestedLoops()
+        let res = jsonParser.parse(data: data)
+        print(res)
+        Profiler.end(0)
+        print("JsonParserNestedLoops:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
+    }
     
     if runJsonParserOneIter {
         let str = try! String(contentsOf: inputFileUrl)

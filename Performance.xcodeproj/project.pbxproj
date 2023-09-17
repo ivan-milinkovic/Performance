@@ -14,6 +14,7 @@
 		2C0A62A32AB72B9E00CB8E1F /* ObjcAllocations.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0A62A22AB72B9E00CB8E1F /* ObjcAllocations.m */; };
 		2C0A62A42AB72D9C00CB8E1F /* JsonParserOneIter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C880CEE2A3B7450006CFE4B /* JsonParserOneIter.swift */; };
 		2C0A62A72AB74D2A00CB8E1F /* JsonParserOneIterCChar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0A62A62AB74C4B00CB8E1F /* JsonParserOneIterCChar.swift */; };
+		2C0A62AA2AB76A7D00CB8E1F /* JsonParserNestedLoops.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0A62A92AB76A7D00CB8E1F /* JsonParserNestedLoops.m */; };
 		2C228BF22A463EA400D18786 /* TestIterSpeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C228BF12A463EA400D18786 /* TestIterSpeed.swift */; };
 		2C286F232A569635008B76A1 /* TestTimeMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C286F222A569635008B76A1 /* TestTimeMeasurement.swift */; };
 		2C286F252A596A3B008B76A1 /* Profiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C286F242A596A3B008B76A1 /* Profiler.swift */; };
@@ -72,6 +73,8 @@
 		2C0A62A22AB72B9E00CB8E1F /* ObjcAllocations.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjcAllocations.m; sourceTree = "<group>"; };
 		2C0A62A52AB745B900CB8E1F /* notepad.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = notepad.md; sourceTree = "<group>"; };
 		2C0A62A62AB74C4B00CB8E1F /* JsonParserOneIterCChar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserOneIterCChar.swift; sourceTree = "<group>"; };
+		2C0A62A82AB76A7D00CB8E1F /* JsonParserNestedLoops.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JsonParserNestedLoops.h; sourceTree = "<group>"; };
+		2C0A62A92AB76A7D00CB8E1F /* JsonParserNestedLoops.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JsonParserNestedLoops.m; sourceTree = "<group>"; };
 		2C228BF12A463EA400D18786 /* TestIterSpeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestIterSpeed.swift; sourceTree = "<group>"; };
 		2C286F222A569635008B76A1 /* TestTimeMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTimeMeasurement.swift; sourceTree = "<group>"; };
 		2C286F242A596A3B008B76A1 /* Profiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profiler.swift; sourceTree = "<group>"; };
@@ -191,6 +194,8 @@
 				2C0769FB2AAB606C00C402AF /* JsonParserObjcNoArc.m */,
 				2C0A629A2AB1916A00CB8E1F /* JsonParserObjcC.h */,
 				2C0A629B2AB1916A00CB8E1F /* JsonParserObjcC.m */,
+				2C0A62A82AB76A7D00CB8E1F /* JsonParserNestedLoops.h */,
+				2C0A62A92AB76A7D00CB8E1F /* JsonParserNestedLoops.m */,
 				2C0769FD2AAB61A000C402AF /* Shared.h */,
 				2C0A629D2AB37C9500CB8E1F /* shared.m */,
 			);
@@ -321,6 +326,7 @@
 				2C8E71D92A48CA6D0004CDDD /* JsonParserBuffers.swift in Sources */,
 				2C0A629E2AB37C9500CB8E1F /* shared.m in Sources */,
 				2C0A62A02AB72ACC00CB8E1F /* Allocations.swift in Sources */,
+				2C0A62AA2AB76A7D00CB8E1F /* JsonParserNestedLoops.m in Sources */,
 				2C286F272A59741D008B76A1 /* TestDataIteration.swift in Sources */,
 				2CC8C1DE2A464DAD00EFF8EF /* SwiftSpeed.swift in Sources */,
 				2CBE799B2A2C684D0016B8C9 /* cpu8086.swift in Sources */,
