@@ -13,10 +13,10 @@ func testJsonParser() {
     let runJsonParserCChar         = false
     let runJsonParserObjcNoArc     = false
     let runJsonParserIndexes       = false
-    let runJSONSerialization       = false
     let runJsonParserObjcC         = false
     let runJsonParserOneIter       = false
     let runJsonParserOneIterCChar  = false
+    let runJSONSerialization       = false
     let runJsonParserNestedLoops   = true
     
 //    let jsonFile = "testJson.json"

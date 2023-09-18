@@ -10,11 +10,12 @@
 
 NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes) {
     
+    // strtod is slower
 //    double res = strtod(bytes + startIndex, NULL);
 //    if (res == 0.0) {
 //        printf("%f", res);
 //    }
-//    return @(res);
+//    return [[NSNumber alloc] initWithDouble:res];
 
     bool hasDecimalPart = false;
     double num = 0.0;
@@ -67,7 +68,7 @@ NSNumber * tryMakeDouble(int startIndex, int length, const char * bytes) {
         num *= -1;
     }
     
-    return [NSNumber numberWithDouble:num];
+    return [[NSNumber alloc] initWithDouble:num];
 }
 
 

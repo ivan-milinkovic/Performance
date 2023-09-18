@@ -65,7 +65,10 @@ id root(int* index, const char * bytes, int len, char ** error) {
                 break;
             }
             
-//            snprintf(*error, 100, "Unexpected character at %d", *index);
+//            *error = "Unexpected character at ______________";
+//            snprintf(*error, 100, "Unexpected character at %d", *index); // figure out the crash
+            
+            *error =  "Unexpected character";
             return nil;
         }
     }
