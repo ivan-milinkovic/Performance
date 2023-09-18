@@ -25,17 +25,13 @@ func testJsonParser() {
     let signposter = OSSignposter()
     
     if runJsonParserNestedLoops {
-//        let data = try! Data(contentsOf: inputFileUrl)
-//        let data = #"{"key1":"val1","key2":"val2"}"#.data(using: .utf8)!
-//        let data = #"[123]"#.data(using: .utf8)!
-        let data = #"[ {}, {} ]"#.data(using: .utf8)!
+        let data = try! Data(contentsOf: inputFileUrl)
         Profiler.reset()
         Profiler.start(0)
-        let jsonParser = JsonParserNestedLoops()
+        let jsonParser = JsonParserCNestedLoops()
         let res = jsonParser.parse(data: data)
-        print(res)
         Profiler.end(0)
-        print("JsonParserNestedLoops:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
+        print("JsonParserCNestedLoops:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
     
     if runJsonParserOneIter {

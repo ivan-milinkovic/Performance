@@ -5,7 +5,7 @@
 //  Created by Ivan Milinkovic on 17.9.23..
 //
 
-#import "JsonParserNestedLoops.h"
+#import "JsonParserCNestedLoops.h"
 #import "Shared.h"
 
 #define printc(c) printf("%c\n", c);
@@ -14,7 +14,7 @@
 #define is_index_outside (*index >= len)
 #define inc_index (*index)++
 
-@implementation JsonParserNestedLoops
+@implementation JsonParserCNestedLoops
 
 - (id) parse:(NSData *) data NS_SWIFT_NAME(parse(data:)) {
     const char * bytes = data.bytes;
@@ -76,9 +76,7 @@ id root(int* index, const char * bytes, int len, char ** error) {
     
     // check there are no more elements after the root
     skipWhitespace(index, bytes, len);
-    if (is_index_outside) {
-        return res;
-    } else {
+    if (!is_index_outside) {
         *error = "Cannot have elements after root element";
         return nil;
     }
@@ -197,7 +195,7 @@ NSNumber* parseFalse(int* index, const char * bytes, int len, char ** error) {
 NSString * parseString(int* index, const char * bytes, int len, char ** error) {
     inc_validate_index(index, len, error, "String malformed");
     bool isEscaping = false;
-    NSMutableString * str = [[NSMutableString alloc] init];
+    int i_start = *index;
     while((*index) < len) {
         char c = bytes[*index];
         if (c == '\\') {
@@ -207,9 +205,11 @@ NSString * parseString(int* index, const char * bytes, int len, char ** error) {
             break;
         }
         
-        [str appendFormat: @"%c", c];
         inc_index;
     }
+    
+    int str_len = *index - i_start;
+    NSString * str = [[NSString alloc] initWithBytes:(bytes + i_start) length:str_len encoding:NSUTF8StringEncoding];
     inc_index;
     return str;
 }
@@ -341,8 +341,13 @@ NSArray * parseArray(int* index, const char * bytes, int len, char ** error) {
             return nil;
         }
         
-        // continue?
-        inc_index;
+        [array addObject: value];
+        
+        if (!skip_whitespace_and_validate_index(index, bytes, len, error, "Array is incomplete")) {
+            return nil;
+        }
+        
+        // continue or not
         c = bytes[*index];
         switch (c) {
             case ',':
@@ -356,8 +361,6 @@ NSArray * parseArray(int* index, const char * bytes, int len, char ** error) {
                 *error = "Array expects an element delimiter \",\" or a closing square bracket \"]\"";
                 return nil;
         }
-        
-        [array addObject: value];
     }
     
     return array;
