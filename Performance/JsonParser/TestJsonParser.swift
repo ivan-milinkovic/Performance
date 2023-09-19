@@ -2,22 +2,22 @@ import Foundation
 import OSLog
 
 func testJsonParser() {
-    
-    let runJsonParserValues        = false
-    let runJsonParserUnicode       = false
-    let runJsonParserAscii         = false
-    let runJSONDecoder             = false
-    let runJsonParserObjc          = false
-    let runJsonParserBuffers       = false
-    let runJsonParserFopen         = false
-    let runJsonParserCChar         = false
-    let runJsonParserObjcNoArc     = false
-    let runJsonParserIndexes       = false
-    let runJsonParserObjcC         = false
-    let runJsonParserOneIter       = false
-    let runJsonParserOneIterCChar  = false
-    let runJSONSerialization       = false
-    let runJsonParserNestedLoops   = true
+    let ws = false // removes compiler warnings for unreachable code
+    let runJsonParserValues        = ws || false
+    let runJsonParserUnicode       = ws || false
+    let runJsonParserAscii         = ws || false
+    let runJSONDecoder             = ws || false
+    let runJsonParserObjc          = ws || false
+    let runJsonParserBuffers       = ws || false
+    let runJsonParserFopen         = ws || false
+    let runJsonParserCChar         = ws || false
+    let runJsonParserObjcNoArc     = ws || false
+    let runJsonParserIndexes       = ws || false
+    let runJsonParserObjcC         = ws || false
+    let runJsonParserOneIter       = ws || false
+    let runJsonParserOneIterCChar  = ws || false
+    let runJSONSerialization       = ws || false
+    let runJsonParserNestedLoops   = ws || true
     
 //    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
