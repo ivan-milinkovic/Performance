@@ -16,7 +16,7 @@ JsonParserCChar        817_413 ticks,  34.06ms
 JsonParserOneIterCChar 491_223 ticks,  20.47ms
 JsonParserIndexes      445_691 ticks,  18.57ms
 JsonParserObjcC        321_424 ticks,  13.39ms
-JsonParserCNestedLoops 208_126 ticks,   8.67ms
+JsonParserCNestedLoops 214_757 ticks,   8.95ms
 JSONSerialization      164_948 ticks,   6.87ms
 
 
@@ -65,7 +65,7 @@ JsonParserOneIterCChar:
 
 JsonParserCNestedLoops:
     222_578 ticks,   9.27ms - avoids unnecessary allocations (tracks indexes and lengths into the bytes array)
-    208_126 ticks,   8.67ms - use [[NSNumber alloc] initWithDouble:num] instead of [NSNumber numberWithDouble:]
+    214_757 ticks,   8.95ms - use [[NSNumber alloc] initWithDouble:num] instead of [NSNumber numberWithDouble:]
     
 
 high %:
