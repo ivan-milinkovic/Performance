@@ -3,21 +3,22 @@ Results:
 ```
 coords_10_000.json release
 
-JsonParserValues    12_616_383 ticks, 525.68ms
-JsonParserOneIter    7_394_511 ticks, 308.10ms
-JsonParserUnicode    2_343_682 ticks,  97.65ms
-JsonParserAscii      2_339_993 ticks,  97.50ms
-JSONDecoder          1_856_054 ticks,  77.34ms
-JsonParserObjc       1_080_941 ticks,  45.04ms
-JsonParserObjcNoArc  1_000_709 ticks,  41.70ms
-JsonParserBuffers      941_253 ticks,  39.22ms
-JsonParserFopen        818_944 ticks,  34.12ms
-JsonParserCChar        817_413 ticks,  34.06ms
-JsonParserOneIterCChar 491_223 ticks,  20.47ms
-JsonParserIndexes      445_691 ticks,  18.57ms
-JsonParserObjcC        321_424 ticks,  13.39ms
-JsonParserCRecursive   214_757 ticks,   8.95ms
-JSONSerialization      164_948 ticks,   6.87ms
+JsonParserValues      12_616_383 ticks, 525.68ms
+JsonParserOneIter      7_394_511 ticks, 308.10ms
+JsonParserUnicode      2_343_682 ticks,  97.65ms
+JsonParserAscii        2_339_993 ticks,  97.50ms
+JSONDecoder            1_856_054 ticks,  77.34ms
+JsonParserObjc         1_080_941 ticks,  45.04ms
+JsonParserObjcNoArc    1_000_709 ticks,  41.70ms
+JsonParserBuffers        941_253 ticks,  39.22ms
+JsonParserFopen          818_944 ticks,  34.12ms
+JsonParserCChar          817_413 ticks,  34.06ms
+JsonParserOneIterCChar   491_223 ticks,  20.47ms
+JsonParserIndexes        445_691 ticks,  18.57ms
+JsonParserObjcC          321_424 ticks,  13.39ms
+JsonParserSwiftRecursive 259_638 ticks,  10.82ms
+JsonParserCRecursive     214_757 ticks,   8.95ms
+JSONSerialization        164_948 ticks,   6.87ms
 
 
 JsonParserUnicode:
@@ -67,6 +68,9 @@ JsonParserCRecursive:
     222_578 ticks,   9.27ms - avoids unnecessary allocations (tracks indexes and lengths into the bytes array)
     214_757 ticks,   8.95ms - use [[NSNumber alloc] initWithDouble:num] instead of [NSNumber numberWithDouble:]
 
+JsonParserSwiftRecursive: 
+    259_638 ticks,  10.82ms
+
 
 high %:
     String iteration
@@ -102,8 +106,8 @@ os_signpost_interval_end(log, sid, "collections");
 
 Test json:
 ```
-let str = #"{"key":"val"}"#
-let str = #"["123", 234, 345]"#
-let str = #"[ { "lat1": 123.0, "lon": 234, "lat2": 123, "lon2": 234} ]"#
-let str = #"[{"lat1": 123.0}]"#
+let data = #"{"key":"val"}"#.data(using: .utf8)!
+let data = #"["123", 234, 345]"#.data(using: .utf8)!
+let data = #"[{"lat1": 123.0}]"#.data(using: .utf8)!
+let data = #"[ { "lat1": 123.0, "lon": 234, "lat2": 123, "lon2": 234} ]"#.data(using: .utf8)!
 ```

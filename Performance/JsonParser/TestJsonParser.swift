@@ -3,35 +3,46 @@ import OSLog
 
 func testJsonParser() {
     let ws = false // removes compiler warnings for unreachable code
-    let runJsonParserValues        = ws || false
-    let runJsonParserUnicode       = ws || false
-    let runJsonParserAscii         = ws || false
-    let runJSONDecoder             = ws || false
-    let runJsonParserObjc          = ws || false
-    let runJsonParserBuffers       = ws || false
-    let runJsonParserFopen         = ws || false
-    let runJsonParserCChar         = ws || false
-    let runJsonParserObjcNoArc     = ws || false
-    let runJsonParserIndexes       = ws || false
-    let runJsonParserObjcC         = ws || false
-    let runJsonParserOneIter       = ws || false
-    let runJsonParserOneIterCChar  = ws || false
-    let runJSONSerialization       = ws || false
-    let runJsonParserNestedLoops   = ws || true
+    let runJsonParserValues         = ws || false
+    let runJsonParserUnicode        = ws || false
+    let runJsonParserAscii          = ws || false
+    let runJSONDecoder              = ws || false
+    let runJsonParserObjc           = ws || false
+    let runJsonParserBuffers        = ws || false
+    let runJsonParserFopen          = ws || false
+    let runJsonParserCChar          = ws || false
+    let runJsonParserObjcNoArc      = ws || false
+    let runJsonParserIndexes        = ws || false
+    let runJsonParserObjcC          = ws || false
+    let runJsonParserOneIter        = ws || false
+    let runJsonParserOneIterCChar   = ws || false
+    let runJSONSerialization        = ws || true
+    let runJsonParserCRecursive     = ws || true
+    let runJsonParserSwiftRecursive = ws || true
     
 //    let jsonFile = "testJson.json"
     let jsonFile = "coords_10_000.json"
     let inputFileUrl = dataDirUrl.appending(path: jsonFile, directoryHint: URL.DirectoryHint.notDirectory)
     let signposter = OSSignposter()
     
-    if runJsonParserNestedLoops {
+    if runJsonParserSwiftRecursive {
+        let data = try! Data(contentsOf: inputFileUrl)
+        Profiler.reset()
+        Profiler.start(0)
+        let jsonParser = JsonParserSwiftRecursive()
+        let res = jsonParser.parse(data: data)
+        Profiler.end(0)
+        print("JsonParserSwiftRecursive:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
+    }
+    
+    if runJsonParserCRecursive {
         let data = try! Data(contentsOf: inputFileUrl)
         Profiler.reset()
         Profiler.start(0)
         let jsonParser = JsonParserCRecursive()
         let res = jsonParser.parse(data: data)
         Profiler.end(0)
-        print("JsonParserCNestedLoops:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
+        print("JsonParserCRecursive:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
     }
     
     if runJsonParserOneIter {

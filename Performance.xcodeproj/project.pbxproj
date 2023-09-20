@@ -31,6 +31,7 @@
 		2C8E71D72A483B560004CDDD /* JsonParserFopen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8E71D62A483B4B0004CDDD /* JsonParserFopen.swift */; };
 		2C8E71D92A48CA6D0004CDDD /* JsonParserBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8E71D82A48CA560004CDDD /* JsonParserBuffers.swift */; };
 		2CB475752ABB5D670078D30C /* shared.m in Sources */ = {isa = PBXBuildFile; fileRef = 2C0A629D2AB37C9500CB8E1F /* shared.m */; };
+		2CB475772ABB5DCF0078D30C /* JsonParserSwiftRecursive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CB475762ABB5DCF0078D30C /* JsonParserSwiftRecursive.swift */; };
 		2CBE79992A2BB6240016B8C9 /* cleancode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBE79982A2BB6240016B8C9 /* cleancode.swift */; };
 		2CBE799B2A2C684D0016B8C9 /* cpu8086.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBE799A2A2C684D0016B8C9 /* cpu8086.swift */; };
 		2CBE79BE2A3060440016B8C9 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBE79BD2A3060440016B8C9 /* PerformanceTests.swift */; };
@@ -95,6 +96,7 @@
 		2C8E71D42A46FFE20004CDDD /* JsonParserCChar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserCChar.swift; sourceTree = "<group>"; };
 		2C8E71D62A483B4B0004CDDD /* JsonParserFopen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserFopen.swift; sourceTree = "<group>"; };
 		2C8E71D82A48CA560004CDDD /* JsonParserBuffers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserBuffers.swift; sourceTree = "<group>"; };
+		2CB475762ABB5DCF0078D30C /* JsonParserSwiftRecursive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserSwiftRecursive.swift; sourceTree = "<group>"; };
 		2CBE79982A2BB6240016B8C9 /* cleancode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cleancode.swift; sourceTree = "<group>"; };
 		2CBE799A2A2C684D0016B8C9 /* cpu8086.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cpu8086.swift; sourceTree = "<group>"; };
 		2CBE79BB2A3060440016B8C9 /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -197,6 +199,7 @@
 				2C0A629B2AB1916A00CB8E1F /* JsonParserObjcC.m */,
 				2C0A62A82AB76A7D00CB8E1F /* JsonParserCRecursive.h */,
 				2C0A62A92AB76A7D00CB8E1F /* JsonParserCRecursive.m */,
+				2CB475762ABB5DCF0078D30C /* JsonParserSwiftRecursive.swift */,
 				2C0769FD2AAB61A000C402AF /* Shared.h */,
 				2C0A629D2AB37C9500CB8E1F /* shared.m */,
 			);
@@ -328,6 +331,7 @@
 				2C0A629E2AB37C9500CB8E1F /* shared.m in Sources */,
 				2C0A62A02AB72ACC00CB8E1F /* Allocations.swift in Sources */,
 				2C0A62AA2AB76A7D00CB8E1F /* JsonParserCRecursive.m in Sources */,
+				2CB475772ABB5DCF0078D30C /* JsonParserSwiftRecursive.swift in Sources */,
 				2C286F272A59741D008B76A1 /* TestDataIteration.swift in Sources */,
 				2CC8C1DE2A464DAD00EFF8EF /* SwiftSpeed.swift in Sources */,
 				2CBE799B2A2C684D0016B8C9 /* cpu8086.swift in Sources */,

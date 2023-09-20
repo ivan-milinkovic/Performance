@@ -196,15 +196,18 @@ NSNumber* parseFalse(int* index, const char * bytes, int len, char ** error) {
 }
 
 NSString * parseString(int* index, const char * bytes, int len, char ** error) {
-    inc_validate_index(index, len, error, "String malformed");
-    bool isEscaping = false;
+    if (!inc_validate_index(index, len, error, "String malformed")) {
+        return nil;
+    }
+    bool is_escaping = false;
     int i_start = *index;
     while((*index) < len) {
         char c = bytes[*index];
         if (c == '\\') {
-            isEscaping = true;
+            is_escaping = true;
         }
-        if (c == '"' && !isEscaping) {
+        // todo: validate escaped char
+        if (c == '"' && !is_escaping) {
             break;
         }
         
@@ -245,11 +248,12 @@ NSNumber * parseNumber(int* index, const char * bytes, int len, char ** error) {
 
 NSDictionary * parseMap(int* index, const char * bytes, int len, char ** error) {
     
-    NSMutableDictionary * map = [[NSMutableDictionary alloc] init];
     inc_index;
     if (!skip_whitespace_and_validate_index(index, bytes, len, error, "Map is incomplete")) {
         return nil;
     }
+    
+    NSMutableDictionary * map = [[NSMutableDictionary alloc] init];
     
     // check if map is empty
     char c = bytes[*index];
@@ -274,6 +278,10 @@ NSDictionary * parseMap(int* index, const char * bytes, int len, char ** error) 
         
         // search for key value delimiter ":"
         if (!skip_whitespace_and_validate_index(index, bytes, len, error, "Map is incomplete")) {
+            return nil;
+        }
+        if (key == nil) {
+            *error = "Map key is missing";
             return nil;
         }
         
@@ -346,19 +354,19 @@ NSArray * parseArray(int* index, const char * bytes, int len, char ** error) {
         
         [array addObject: value];
         
+        // continue or not
         if (!skip_whitespace_and_validate_index(index, bytes, len, error, "Array is incomplete")) {
             return nil;
         }
         
-        // continue or not
         c = bytes[*index];
         switch (c) {
             case ',':
                 inc_index;
-                continue; // parse more key-value pairs
+                continue; // parse more values
             case ']':
                 inc_index;
-                spin = false; // close the map
+                spin = false; // close the array
                 break;
             default:
                 *error = "Array expects an element delimiter \",\" or a closing square bracket \"]\"";
