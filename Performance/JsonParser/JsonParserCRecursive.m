@@ -5,7 +5,7 @@
 //  Created by Ivan Milinkovic on 17.9.23..
 //
 
-#import "JsonParserCNestedLoops.h"
+#import "JsonParserCRecursive.h"
 #import "Shared.h"
 
 #define printc(c) printf("%c\n", c);
@@ -14,7 +14,7 @@
 #define is_index_outside (*index >= len)
 #define inc_index (*index)++
 
-@implementation JsonParserCNestedLoops
+@implementation JsonParserCRecursive
 
 - (id) parse:(NSData *) data NS_SWIFT_NAME(parse(data:)) {
     const char * bytes = data.bytes;

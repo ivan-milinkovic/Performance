@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface JsonParserCNestedLoops : NSObject
+@interface JsonParserCRecursive : NSObject
 
 - (id) parse:(NSData *) data NS_SWIFT_NAME(parse(data:));
 

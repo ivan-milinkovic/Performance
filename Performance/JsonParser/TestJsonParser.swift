@@ -28,7 +28,7 @@ func testJsonParser() {
         let data = try! Data(contentsOf: inputFileUrl)
         Profiler.reset()
         Profiler.start(0)
-        let jsonParser = JsonParserCNestedLoops()
+        let jsonParser = JsonParserCRecursive()
         let res = jsonParser.parse(data: data)
         Profiler.end(0)
         print("JsonParserCNestedLoops:", Profiler.ticks(0), "ticks,", Profiler.seconds(0).string, "res:", type(of:res))
