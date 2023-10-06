@@ -11,6 +11,7 @@ testJsonParser()
 //testDataIteration()
 //testTimeMeasurement()
 //testAllocations()
+//testSimd()
 
 //var data = "0123456789".data(using: .utf8)!
 //let sub = data[0...7]

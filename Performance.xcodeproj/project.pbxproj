@@ -47,6 +47,7 @@
 		2CCA0BDA2AA3979D00F67581 /* JsonParserIndexes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA0BD82AA372D400F67581 /* JsonParserIndexes.swift */; };
 		2CCA9C102AA4C90600344BFD /* ParseDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA9C0F2AA4C90600344BFD /* ParseDouble.swift */; };
 		2CCA9C112AA4CAB600344BFD /* ParseDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCA9C0F2AA4C90600344BFD /* ParseDouble.swift */; };
+		2CEA5F002ACFE6980015499A /* TestSimd.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CEA5EFF2ACFE6980015499A /* TestSimd.swift */; };
 		2CEE8F822AA9D67C00A55F7A /* JsonParserObjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */; };
 		2CEE8F832AAA35D200A55F7A /* JsonParserObjc.m in Sources */ = {isa = PBXBuildFile; fileRef = 2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */; };
 /* End PBXBuildFile section */
@@ -107,6 +108,7 @@
 		2CCA0BD82AA372D400F67581 /* JsonParserIndexes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JsonParserIndexes.swift; sourceTree = "<group>"; };
 		2CCA9C0F2AA4C90600344BFD /* ParseDouble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseDouble.swift; sourceTree = "<group>"; };
 		2CE308732AC1F8840087E213 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		2CEA5EFF2ACFE6980015499A /* TestSimd.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSimd.swift; sourceTree = "<group>"; };
 		2CEE8F7F2AA9D67C00A55F7A /* Performance-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Performance-Bridging-Header.h"; sourceTree = "<group>"; };
 		2CEE8F802AA9D67C00A55F7A /* JsonParserObjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JsonParserObjc.h; sourceTree = "<group>"; };
 		2CEE8F812AA9D67C00A55F7A /* JsonParserObjc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JsonParserObjc.m; sourceTree = "<group>"; };
@@ -220,6 +222,7 @@
 				2C0A629F2AB72ACC00CB8E1F /* Allocations.swift */,
 				2C0A62A12AB72B9E00CB8E1F /* ObjcAllocations.h */,
 				2C0A62A22AB72B9E00CB8E1F /* ObjcAllocations.m */,
+				2CEA5EFF2ACFE6980015499A /* TestSimd.swift */,
 			);
 			path = SwiftTest;
 			sourceTree = "<group>";
@@ -330,6 +333,7 @@
 				2CEE8F822AA9D67C00A55F7A /* JsonParserObjc.m in Sources */,
 				2C286F252A596A3B008B76A1 /* Profiler.swift in Sources */,
 				2C8E71D92A48CA6D0004CDDD /* JsonParserBuffers.swift in Sources */,
+				2CEA5F002ACFE6980015499A /* TestSimd.swift in Sources */,
 				2C0A629E2AB37C9500CB8E1F /* shared.m in Sources */,
 				2C0A62A02AB72ACC00CB8E1F /* Allocations.swift in Sources */,
 				2C0A62AA2AB76A7D00CB8E1F /* JsonParserCRecursive.m in Sources */,
